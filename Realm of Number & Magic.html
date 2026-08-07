@@ -1,0 +1,4520 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Math RPG - Turn-Based Math Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            touch-action: manipulation;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 0;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        body.rtl {
+            direction: rtl;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        /* Main Menu Styles */
+        .main-menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .menu-title {
+            font-size: 3rem;
+            color: #00d4ff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+            margin-bottom: 10px;
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+            to { text-shadow: 0 0 30px rgba(0, 212, 255, 0.8); }
+        }
+
+        .menu-subtitle {
+            color: #888;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .language-selector {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+
+        .lang-btn {
+            padding: 8px 12px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            color: #00d4ff;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .lang-btn:hover {
+            background: rgba(0, 212, 255, 0.4);
+        }
+
+        .lang-btn.active {
+            background: #00d4ff;
+            color: #000;
+        }
+
+        .credits {
+            position: fixed;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem;
+            color: #666;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .menu-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .menu-btn {
+            padding: 20px 30px;
+            font-size: 1.3rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            color: #fff;
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .menu-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .menu-btn:active {
+            transform: translateY(-2px);
+        }
+
+        .menu-btn.secondary {
+            background: linear-gradient(135deg, #6666ff, #3333cc);
+        }
+
+        .menu-btn.success {
+            background: linear-gradient(135deg, #66ff66, #33cc33);
+        }
+
+        .menu-btn.warning {
+            background: linear-gradient(135deg, #ffaa00, #cc8800);
+        }
+
+        .menu-btn.danger {
+            background: linear-gradient(135deg, #ff6666, #cc3333);
+        }
+
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            color: #00d4ff;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .settings-btn:hover {
+            background: rgba(0, 212, 255, 0.4);
+        }
+
+        /* Game Container */
+        .game-container {
+            display: none;
+            padding: 10px;
+            max-width: 100%;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding: 15px;
+            border-bottom: 2px solid #4a4a6a;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            background: rgba(0, 212, 255, 0.2);
+            border: 1px solid #00d4ff;
+            border-radius: 10px;
+            color: #00d4ff;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .back-btn:hover {
+            background: rgba(0, 212, 255, 0.4);
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            border: 1px solid #3a3a5a;
+        }
+
+        .stat-item {
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 3px;
+        }
+
+        .stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00d4ff;
+        }
+
+        .stat-value.danger {
+            color: #ff4444;
+            animation: pulse 1s infinite;
+        }
+
+        .stat-value.warning {
+            color: #ffaa00;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .game-area {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 15px;
+            padding: 15px;
+            border: 2px solid #3a3a5a;
+            margin-bottom: 15px;
+            min-height: 350px;
+        }
+
+        .stage-info {
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid #2a2a4a;
+        }
+
+        .stage-title {
+            font-size: 1.2rem;
+            color: #ffd700;
+            margin-bottom: 5px;
+        }
+
+        .theme-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .music-info {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .enemy-info, .player-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .enemy-info {
+            border: 1px solid #6a4a4a;
+        }
+
+        .player-info {
+            border: 1px solid #4a6a4a;
+        }
+
+        .entity-name {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .enemy-name {
+            color: #ff6666;
+        }
+
+        .player-name {
+            color: #66ff66;
+        }
+
+        .hp-bar {
+            height: 15px;
+            background: #333;
+            border-radius: 8px;
+            overflow: hidden;
+            flex: 1;
+            margin: 0 10px;
+            max-width: 150px;
+        }
+
+        .hp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6666, #ff3333);
+            transition: width 0.3s ease;
+            border-radius: 8px;
+        }
+
+        .player-hp-fill {
+            background: linear-gradient(90deg, #66ff66, #33ff33);
+        }
+
+        .hp-text {
+            font-size: 0.9rem;
+            font-weight: bold;
+            min-width: 45px;
+            text-align: center;
+        }
+
+        .question-area {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid #4a4a6a;
+        }
+
+        .question-text {
+            font-size: 1.1rem;
+            color: #ffd700;
+            margin-bottom: 15px;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all;
+        }
+
+        .answer-input {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        input[type="number"] {
+            padding: 12px 15px;
+            font-size: 1.1rem;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            width: 180px;
+            text-align: center;
+            direction: ltr;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        input[type="text"] {
+            padding: 12px 15px;
+            font-size: 1rem;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.4);
+            color: #fff;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #00d4ff;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.3);
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #0099cc);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #44e4ff, #44bbdd);
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #66ff66, #33cc33);
+            color: #000;
+        }
+
+        .btn-success:hover {
+            background: linear-gradient(135deg, #88ff88, #55dd55);
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6666, #cc3333);
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff8888, #dd5555);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #ffaa00, #cc8800);
+            color: #000;
+        }
+
+        .btn-warning:hover {
+            background: linear-gradient(135deg, #ffcc33, #ddaa00);
+            transform: translateY(-2px);
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #6666ff, #3333cc);
+            color: #fff;
+        }
+
+        .btn-info:hover {
+            background: linear-gradient(135deg, #8888ff, #5555dd);
+            transform: translateY(-2px);
+        }
+
+        .actions-area {
+            display: none;
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid #4a4a6a;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            text-align: center;
+            border: 2px solid #4a4a6a;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .action-btn:hover:not(.disabled) {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            transform: translateY(-2px);
+        }
+
+        .action-btn.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .action-btn .cost {
+            display: block;
+            font-size: 0.75rem;
+            color: #ffaa00;
+            margin-top: 3px;
+        }
+
+        .skills-modal, .items-modal, .shop-modal, .save-modal, .leaderboard-modal, .achievements-modal, .coop-modal, .settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-width: 500px;
+            margin: 30px auto;
+            padding: 20px;
+            background: rgba(26, 26, 46, 0.95);
+            border-radius: 15px;
+            border: 2px solid #00d4ff;
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #4a4a6a;
+        }
+
+        .modal-title {
+            font-size: 1.3rem;
+            color: #00d4ff;
+        }
+
+        .close-btn {
+            background: #ff4444;
+            color: #fff;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .close-btn:hover {
+            background: #ff6666;
+        }
+
+        .skill-item, .item-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            margin: 6px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid #3a3a5a;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .skill-item:hover, .item-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+            border-color: #00d4ff;
+        }
+
+        .skill-name, .item-name {
+            font-weight: bold;
+            color: #ffd700;
+            font-size: 0.95rem;
+        }
+
+        .skill-cost, .item-cost {
+            color: #ffaa00;
+            font-size: 0.85rem;
+        }
+
+        .skill-count, .item-count {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .message-area {
+            margin: 15px 0;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 1px solid #4a4a6a;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message {
+            font-size: 1rem;
+            color: #66ff66;
+            text-align: center;
+        }
+
+        .message.error {
+            color: #ff4444;
+        }
+
+        .message.warning {
+            color: #ffaa00;
+        }
+
+        .boss-indicator {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            margin-left: 6px;
+            font-weight: bold;
+        }
+
+        .boss-mini {
+            background: #ffaa00;
+            color: #000;
+        }
+
+        .boss-main {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .game-over, .victory {
+            display: none;
+            text-align: center;
+            padding: 25px;
+            background: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2000;
+            max-width: 90%;
+            width: 400px;
+        }
+
+        .game-over {
+            border: 2px solid #ff4444;
+        }
+
+        .victory {
+            border: 2px solid #66ff66;
+        }
+
+        .game-over h2, .victory h2 {
+            font-size: 2rem;
+            margin-bottom: 15px;
+        }
+
+        .game-over h2 {
+            color: #ff4444;
+            text-shadow: 0 0 10px rgba(255, 68, 68, 0.5);
+        }
+
+        .victory h2 {
+            color: #66ff66;
+            text-shadow: 0 0 10px rgba(102, 255, 102, 0.5);
+        }
+
+        .final-stats {
+            text-align: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+        }
+
+        .restart-btn {
+            margin-top: 15px;
+            padding: 12px 24px;
+            font-size: 1rem;
+        }
+
+        .shop-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .shop-item {
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            border: 1px solid #3a3a5a;
+            text-align: center;
+        }
+
+        .shop-item h4 {
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .shop-item .price {
+            color: #66ff66;
+            font-weight: bold;
+            margin: 8px 0;
+        }
+
+        .shop-item .desc {
+            color: #888;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .buy-btn {
+            background: #66ff66;
+            color: #000;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .buy-btn:hover {
+            background: #88ff88;
+        }
+
+        .buy-btn:disabled {
+            background: #444;
+            cursor: not-allowed;
+        }
+
+        .coin-display {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .level-up {
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .level-up h3 {
+            color: #ffd700;
+            margin-bottom: 8px;
+            font-size: 1.2rem;
+        }
+
+        .level-up p {
+            color: #66ff66;
+            font-size: 1rem;
+        }
+
+        .sound-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #00d4ff;
+            border: none;
+            color: #000;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .sound-btn:hover {
+            background: #44e4ff;
+            transform: scale(1.1);
+        }
+
+        .sound-btn.muted {
+            background: #ff4444;
+            color: #fff;
+        }
+
+        .sound-btn.muted:hover {
+            background: #ff6666;
+        }
+
+        .save-slot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 8px 0;
+            border: 1px solid #3a3a5a;
+        }
+
+        .save-slot-info {
+            flex: 1;
+        }
+
+        .save-slot-name {
+            font-weight: bold;
+            color: #00d4ff;
+            font-size: 0.95rem;
+        }
+
+        .save-slot-stats {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .save-slot-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .save-btn-small {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid #3a3a5a;
+        }
+
+        .leaderboard-table th {
+            background: rgba(0, 0, 0, 0.3);
+            color: #00d4ff;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .leaderboard-table tr:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .leaderboard-rank {
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .leaderboard-name {
+            color: #fff;
+        }
+
+        .leaderboard-score {
+            color: #66ff66;
+        }
+
+        .leaderboard-stage {
+            color: #00d4ff;
+        }
+
+        .leaderboard-date {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .no-saves {
+            text-align: center;
+            color: #888;
+            padding: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .coop-info {
+            text-align: center;
+            padding: 15px;
+            color: #888;
+            margin-bottom: 20px;
+        }
+
+        .coop-steps {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+
+        .coop-step {
+            padding: 10px;
+            margin: 8px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            border-left: 3px solid #00d4ff;
+        }
+
+        .coop-step-number {
+            color: #00d4ff;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background: #fff;
+            border-radius: 10px;
+        }
+
+        .qr-code img {
+            max-width: 200px;
+            height: auto;
+        }
+
+        .coop-id {
+            text-align: center;
+            font-size: 1.2rem;
+            color: #00d4ff;
+            font-weight: bold;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+
+        .coop-status {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .coop-status.waiting {
+            background: rgba(255, 170, 0, 0.2);
+            color: #ffaa00;
+        }
+
+        .coop-status.connected {
+            background: rgba(102, 255, 102, 0.2);
+            color: #66ff66;
+        }
+
+        .settings-section {
+            margin-bottom: 20px;
+        }
+
+        .settings-section h3 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .setting-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .setting-label {
+            color: #888;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 24px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #00d4ff;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+
+        .revive-btn {
+            background: linear-gradient(135deg, #ffd700, #ffaa00);
+            color: #000;
+            margin-top: 10px;
+        }
+
+        .revive-btn:hover {
+            background: linear-gradient(135deg, #ffcc00, #ffbb00);
+        }
+
+        .difficulty-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .difficulty-btn {
+            padding: 10px 20px;
+            border: 2px solid #4a4a6a;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .difficulty-btn.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+        }
+
+        .player-info-coop {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .player-card {
+            flex: 1;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 0 5px;
+            border: 1px solid #3a3a5a;
+        }
+
+        .player-card.local {
+            border-color: #66ff66;
+        }
+
+        .player-card.remote {
+            border-color: #00d4ff;
+        }
+
+        .player-card .name {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        .player-card.local .name {
+            color: #66ff66;
+        }
+
+        .player-card.remote .name {
+            color: #00d4ff;
+        }
+
+        .player-card .stats {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .achievement-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            margin: 8px 0;
+            border: 1px solid #3a3a5a;
+        }
+
+        .achievement-icon {
+            font-size: 1.5rem;
+            margin-left: 12px;
+        }
+
+        .achievement-info {
+            flex: 1;
+        }
+
+        .achievement-name {
+            font-weight: bold;
+            color: #ffd700;
+            margin-bottom: 3px;
+        }
+
+        .achievement-desc {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .achievement-progress {
+            color: #66ff66;
+            font-size: 0.85rem;
+        }
+
+        .achievement-completed {
+            color: #66ff66;
+        }
+
+        /* Bluetooth/WiFi Direct Styles */
+        .connection-methods {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .connection-method {
+            flex: 1;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            border: 2px solid #4a4a6a;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .connection-method:hover {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .connection-method.selected {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.2);
+        }
+
+        .connection-method i {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .connection-method h4 {
+            color: #00d4ff;
+            margin-bottom: 5px;
+        }
+
+        .connection-method p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .peer-list {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 15px 0;
+        }
+
+        .peer-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            margin: 8px 0;
+            border: 1px solid #3a3a5a;
+            cursor: pointer;
+        }
+
+        .peer-item:hover {
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .peer-name {
+            color: #fff;
+        }
+
+        .peer-id {
+            color: #888;
+            font-size: 0.85rem;
+        }
+
+        .connect-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+        }
+
+        .connect-status.connected {
+            background: rgba(102, 255, 102, 0.2);
+            color: #66ff66;
+        }
+
+        .connect-status.disconnected {
+            background: rgba(255, 68, 68, 0.2);
+            color: #ff4444;
+        }
+
+        .share-link {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .share-link input {
+            width: 100%;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid #3a3a5a;
+            border-radius: 8px;
+            color: #fff;
+            text-align: center;
+            direction: ltr;
+            margin-bottom: 10px;
+        }
+
+        .share-link button {
+            width: 100%;
+        }
+
+        .how-to-share {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+        }
+
+        .how-to-share h4 {
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+
+        .how-to-share ol {
+            color: #888;
+            padding-right: 20px;
+        }
+
+        .how-to-share li {
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .game-stats {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .stat-item {
+                margin: 8px 0;
+            }
+            
+            .enemy-info, .player-info {
+                flex-direction: column;
+                gap: 8px;
+            }
+            
+            .hp-bar {
+                max-width: 100%;
+            }
+            
+            .modal-content {
+                margin: 20px;
+                padding: 15px;
+                max-width: 90%;
+            }
+            
+            .menu-title {
+                font-size: 2.2rem;
+            }
+            
+            .menu-buttons {
+                width: 90%;
+            }
+            
+            .menu-btn {
+                padding: 15px 20px;
+                font-size: 1.1rem;
+            }
+            
+            .actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .question-text {
+                font-size: 1rem;
+            }
+            
+            input[type="number"] {
+                width: 160px;
+                font-size: 1rem;
+            }
+            
+            .connection-methods {
+                flex-direction: column;
+            }
+            
+            .language-selector {
+                position: fixed;
+                top: 10px;
+                left: 10px;
+                gap: 5px;
+            }
+            
+            .lang-btn {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Selector -->
+    <div class="language-selector">
+        <button class="lang-btn active" id="lang-en" data-lang="en">English</button>
+        <button class="lang-btn" id="lang-fa" data-lang="fa">فارسی</button>
+    </div>
+
+    <!-- Credits -->
+    <div class="credits" id="credits">
+        Made with ❤️ by Zahra Fanderski
+    </div>
+
+    <!-- Main Menu -->
+    <div class="main-menu" id="main-menu">
+        <button class="settings-btn" id="main-settings-btn" title="Settings">⚙️</button>
+        
+        <div class="menu-title" id="menu-title">🎮 Math RPG</div>
+        <div class="menu-subtitle" id="menu-subtitle">Turn-Based Math Game - Answer and Fight!</div>
+        
+        <div class="menu-buttons">
+            <button class="menu-btn" id="new-game-btn">🆕 New Game</button>
+            <button class="menu-btn secondary" id="coop-btn">👥 Coop Mode</button>
+            <button class="menu-btn success" id="load-btn">📂 Load Game</button>
+            <button class="menu-btn info" id="leaderboard-btn">🏆 Leaderboard</button>
+            <button class="menu-btn warning" id="achievements-btn">🎖️ Achievements</button>
+            <button class="menu-btn warning" id="settings-btn">⚙️ Settings</button>
+        </div>
+    </div>
+
+    <!-- Game Container -->
+    <div class="game-container" id="game-container">
+        <div class="container">
+            <header>
+                <div class="game-header">
+                    <button class="back-btn" id="back-to-menu">⬅️ Main Menu</button>
+                    <div style="color: #00d4ff; font-weight: bold;" id="game-title">Math RPG</div>
+                </div>
+            </header>
+
+            <div class="game-stats">
+                <div class="stat-item">
+                    <div class="stat-label" id="stage-label">🔥 Stage</div>
+                    <div class="stat-value" id="stage-display">1</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label" id="score-label">🏆 Score</div>
+                    <div class="stat-value" id="score-display">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label" id="ap-label">⚡ AP</div>
+                    <div class="stat-value" id="ap-display">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label" id="hp-label">❤️ HP</div>
+                    <div class="stat-value" id="hp-display">100</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label" id="coin-label">💰 Coins</div>
+                    <div class="stat-value" id="coin-display">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label" id="level-label">⭐ Level</div>
+                    <div class="stat-value" id="level-display">1</div>
+                </div>
+            </div>
+
+            <div class="game-area">
+                <div class="stage-info">
+                    <div class="theme-icon" id="theme-icon">🌳</div>
+                    <div class="stage-title" id="stage-title">Stage 1 - Forest 🌳</div>
+                    <div class="music-info" id="music-info">🎵 Music: Forest</div>
+                </div>
+
+                <div id="player-info-coop" class="player-info-coop" style="display: none;">
+                    <div class="player-card local">
+                        <div class="name" id="local-name">You</div>
+                        <div class="stats">HP: <span id="local-hp">100</span> | AP: <span id="local-ap">0</span></div>
+                    </div>
+                    <div class="player-card remote">
+                        <div class="name" id="remote-name">Opponent</div>
+                        <div class="stats">HP: <span id="remote-hp">100</span> | AP: <span id="remote-ap">0</span></div>
+                    </div>
+                </div>
+
+                <div class="enemy-info">
+                    <div class="entity-name enemy-name" id="enemy-name">Enemy</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill" id="enemy-hp-bar" style="width: 100%;"></div>
+                    </div>
+                    <div class="hp-text" id="enemy-hp-text">HP: 50</div>
+                </div>
+
+                <div class="player-info">
+                    <div class="entity-name player-name" id="player-name">You</div>
+                    <div class="hp-bar">
+                        <div class="hp-fill player-hp-fill" id="player-hp-bar" style="width: 100%;"></div>
+                    </div>
+                    <div class="hp-text" id="player-hp-text">HP: 100</div>
+                </div>
+
+                <div class="question-area">
+                    <div class="question-text" id="question-text">Get Ready...</div>
+                    <div class="answer-input">
+                        <input type="number" id="answer-input" placeholder="Enter your answer" step="any">
+                        <button class="btn-primary" id="submit-answer">✓ Answer</button>
+                    </div>
+                </div>
+
+                <div class="message-area">
+                    <div class="message" id="message"></div>
+                </div>
+
+                <div class="actions-area" id="actions-area">
+                    <h3 style="text-align: center; margin-bottom: 10px; color: #00d4ff;" id="actions-title">Choose your action:</h3>
+                    <div class="actions-grid">
+                        <div class="action-btn" id="attack-btn" data-cost="1">
+                            ⚔️ Attack
+                            <span class="cost" id="attack-cost">Cost: 1 AP</span>
+                        </div>
+                        <div class="action-btn" id="skills-btn" data-cost="0">
+                            🎯 Skills
+                            <span class="cost">View</span>
+                        </div>
+                        <div class="action-btn" id="items-btn" data-cost="0">
+                            🎒 Items
+                            <span class="cost">View</span>
+                        </div>
+                        <div class="action-btn" id="shop-btn" data-cost="0">
+                            🛒 Shop
+                            <span class="cost">View</span>
+                        </div>
+                        <div class="action-btn" id="skip-btn" data-cost="0">
+                            ⏭ Skip Turn
+                            <span class="cost">Cost: 0 AP</span>
+                        </div>
+                        <div class="action-btn revive-btn" id="revive-btn" data-cost="5">
+                            💚 Revive
+                            <span class="cost" id="revive-cost">Cost: 5 AP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="level-up" id="level-up">
+                <h3 id="level-up-title">🎉 Level Up!</h3>
+                <p id="level-up-message">You reached a new level!</p>
+                <button class="btn-success" id="continue-level-up">Continue</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Skills Modal -->
+    <div class="skills-modal" id="skills-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="skills-title">🎯 Skills</h2>
+                <button class="close-btn" id="close-skills">× Close</button>
+            </div>
+            <div id="skills-list"></div>
+        </div>
+    </div>
+
+    <!-- Items Modal -->
+    <div class="items-modal" id="items-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="items-title">🎒 Items</h2>
+                <button class="close-btn" id="close-items">× Close</button>
+            </div>
+            <div id="items-list"></div>
+        </div>
+    </div>
+
+    <!-- Shop Modal -->
+    <div class="shop-modal" id="shop-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="shop-title">🛒 Shop</h2>
+                <button class="close-btn" id="close-shop">× Close</button>
+            </div>
+            <p style="text-align: center; margin-bottom: 15px;" id="shop-coins-text">
+                Your coins: <span class="coin-display" id="shop-coin-display">0</span>
+            </p>
+            <div class="shop-grid" id="shop-items"></div>
+        </div>
+    </div>
+
+    <!-- Save Modal -->
+    <div class="save-modal" id="save-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="save-title">💾 Save Game</h2>
+                <button class="close-btn" id="close-save">× Close</button>
+            </div>
+            <div id="save-slots"></div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Modal -->
+    <div class="leaderboard-modal" id="leaderboard-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="leaderboard-title">🏆 Leaderboard</h2>
+                <button class="close-btn" id="close-leaderboard">× Close</button>
+            </div>
+            <div id="leaderboard-content"></div>
+        </div>
+    </div>
+
+    <!-- Achievements Modal -->
+    <div class="achievements-modal" id="achievements-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="achievements-title">🎖️ Achievements</h2>
+                <button class="close-btn" id="close-achievements">× Close</button>
+            </div>
+            <div id="achievements-list"></div>
+        </div>
+    </div>
+
+    <!-- Coop Modal -->
+    <div class="coop-modal" id="coop-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="coop-title">👥 Coop Mode</h2>
+                <button class="close-btn" id="close-coop">× Close</button>
+            </div>
+            
+            <div class="coop-info" id="coop-info">
+                Play with friends via local network!
+            </div>
+            
+            <div class="connection-methods" id="connection-methods">
+                <div class="connection-method" data-method="wifi" id="wifi-method">
+                    <i>📶</i>
+                    <h4 id="wifi-method-title">WiFi Direct</h4>
+                    <p id="wifi-method-desc">Connect via local network</p>
+                </div>
+                <div class="connection-method" data-method="bluetooth" id="bluetooth-method">
+                    <i>📳</i>
+                    <h4 id="bluetooth-method-title">Bluetooth</h4>
+                    <p id="bluetooth-method-desc">Direct connection via Bluetooth</p>
+                </div>
+                <div class="connection-method" data-method="link" id="link-method">
+                    <i>🔗</i>
+                    <h4 id="link-method-title">Share Link</h4>
+                    <p id="link-method-desc">Share via link</p>
+                </div>
+            </div>
+            
+            <div id="wifi-section" style="display: none;">
+                <div class="coop-steps">
+                    <div class="coop-step">
+                        <span class="coop-step-number">1.</span>
+                        <span id="coop-step-1">One person starts the game and clicks "Host Game"</span>
+                    </div>
+                    <div class="coop-step">
+                        <span class="coop-step-number">2.</span>
+                        <span id="coop-step-2">Second person enters the IP and Port</span>
+                    </div>
+                </div>
+                <div id="wifi-host-section">
+                    <button class="menu-btn success" id="host-game-btn">🏠 Host Game</button>
+                    <button class="menu-btn info" id="join-game-btn">🔗 Join Game</button>
+                </div>
+                <div id="wifi-hosting-section" style="display: none;">
+                    <div class="coop-status waiting" id="wifi-waiting">Waiting for opponent...</div>
+                    <div class="coop-id" id="wifi-id">Address: generating...</div>
+                    <button class="menu-btn danger" id="cancel-host-btn">❌ Cancel</button>
+                </div>
+                <div id="wifi-joining-section" style="display: none;">
+                    <div class="form-group">
+                        <label id="host-address-label">Enter host address (IP:Port):</label>
+                        <input type="text" id="host-address-input" placeholder="e.g. 192.168.1.100:8080">
+                    </div>
+                    <button class="menu-btn success" id="connect-wifi-btn">🔗 Connect</button>
+                    <button class="menu-btn danger" id="cancel-join-btn">❌ Cancel</button>
+                    <div class="coop-status" id="wifi-join-status" style="margin-top: 15px;"></div>
+                </div>
+            </div>
+            
+            <div id="bluetooth-section" style="display: none;">
+                <div class="coop-info" id="bluetooth-info">
+                    For Bluetooth connection, please use Chrome browser on Android.
+                </div>
+                <div class="peer-list" id="peer-list">
+                    <p style="color: #888; text-align: center;" id="peer-list-empty">Searching for nearby devices...</p>
+                </div>
+                <button class="menu-btn success" id="scan-bt-btn">🔍 Scan Devices</button>
+                <button class="menu-btn info" id="make-discoverable-btn">📡 Make Discoverable</button>
+                <div class="coop-status" id="bt-status" style="margin-top: 15px;"></div>
+            </div>
+            
+            <div id="link-section" style="display: none;">
+                <div class="coop-info" id="link-info">
+                    Share the link with friends to join your game.
+                </div>
+                <div class="share-link">
+                    <div class="form-group">
+                        <label id="game-link-label">Game Link:</label>
+                        <input type="text" id="game-link-input" readonly>
+                    </div>
+                    <button class="menu-btn success" id="copy-link-btn">📋 Copy Link</button>
+                    <button class="menu-btn info" id="share-link-btn">📤 Share</button>
+                </div>
+                <div class="how-to-share">
+                    <h4 id="how-to-share-title">How to Share:</h4>
+                    <ol>
+                        <li id="share-step-1">Copy the link</li>
+                        <li id="share-step-2">Send it to your friends (Telegram, WhatsApp, etc.)</li>
+                        <li id="share-step-3">Friends open the link</li>
+                        <li id="share-step-4">Play together!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div class="settings-modal" id="settings-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="settings-modal-title">⚙️ Settings</h2>
+                <button class="close-btn" id="close-settings">× Close</button>
+            </div>
+            <div class="settings-section">
+                <h3 id="sound-settings-title">Sound</h3>
+                <div class="setting-item">
+                    <span class="setting-label" id="sound-effects-label">Sound Effects</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="sound-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label" id="background-music-label">Background Music</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="music-toggle" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+            <div class="settings-section">
+                <h3 id="difficulty-settings-title">Difficulty</h3>
+                <div class="difficulty-selector" id="difficulty-selector">
+                    <button class="difficulty-btn" data-difficulty="easy" id="diff-easy">Easy</button>
+                    <button class="difficulty-btn active" data-difficulty="normal" id="diff-normal">Normal</button>
+                    <button class="difficulty-btn" data-difficulty="hard" id="diff-hard">Hard</button>
+                    <button class="difficulty-btn" data-difficulty="expert" id="diff-expert">Expert</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Over Screen -->
+    <div class="game-over" id="game-over">
+        <h2 id="game-over-title">💀 Game Over!</h2>
+        <div class="final-stats">
+            <p id="final-stage-text">Reached Stage: <span id="final-stage">0</span></p>
+            <p id="final-score-text">Final Score: <span id="final-score">0</span></p>
+            <p id="final-kills-text">Enemies Killed: <span id="final-kills">0</span></p>
+            <p id="final-bosses-text">Bosses Defeated: <span id="final-bosses">0</span></p>
+            <p id="final-correct-text">Correct Answers: <span id="final-correct">0</span></p>
+        </div>
+        <button class="btn-success restart-btn" id="restart-game">Restart</button>
+        <button class="btn-primary restart-btn" id="revive-game-btn" style="margin-top: 10px;">💚 Revive with 50 Coins</button>
+    </div>
+
+    <!-- Victory Screen -->
+    <div class="victory" id="victory">
+        <h2 id="victory-title">🎉 Victory!</h2>
+        <div class="final-stats">
+            <p id="victory-stage-text">Final Stage: <span id="victory-stage">0</span></p>
+            <p id="victory-score-text">Final Score: <span id="victory-score">0</span></p>
+            <p id="victory-kills-text">Enemies Killed: <span id="victory-kills">0</span></p>
+            <p id="victory-bosses-text">Bosses Defeated: <span id="victory-bosses">0</span></p>
+        </div>
+        <div style="margin-top: 15px;">
+            <input type="text" id="victory-name" placeholder="Enter your name">
+            <button class="btn-success" id="save-score-btn" style="margin-top: 10px;">Save Score</button>
+        </div>
+        <button class="btn-success restart-btn" id="restart-victory" style="margin-top: 10px;">Restart</button>
+    </div>
+
+    <!-- Sound Toggle Button -->
+    <button class="sound-btn" id="sound-btn" title="Sound">🔊</button>
+
+    <!-- Background Music Audio Element -->
+    <audio id="bg-music" loop volume="0.3"></audio>
+
+    <script>
+        // ========== GAME CONFIGURATION ==========
+        const GAME_CONFIG = {
+            MAX_STAGES: 30000,
+            QUESTION_COUNT: 30000,
+            SAVE_SLOTS: 5,
+            LEADERBOARD_KEY: 'math_rpg_leaderboard',
+            ACHIEVEMENTS_KEY: 'math_rpg_achievements',
+            DIFFICULTY: 'normal',
+            COOP_ENABLED: true,
+            SERVER_PORT: 8080,
+            LANGUAGE: 'en'
+        };
+
+        // ========== TRANSLATIONS ==========
+        const translations = {
+            en: {
+                // Menu
+                menuTitle: '🎮 Math RPG',
+                menuSubtitle: 'Turn-Based Math Game - Answer and Fight!',
+                newGame: '🆕 New Game',
+                coopMode: '👥 Coop Mode',
+                loadGame: '📂 Load Game',
+                leaderboard: '🏆 Leaderboard',
+                achievements: '🎖️ Achievements',
+                settings: '⚙️ Settings',
+                
+                // Game
+                gameTitle: 'Math RPG',
+                stageLabel: '🔥 Stage',
+                scoreLabel: '🏆 Score',
+                apLabel: '⚡ AP',
+                hpLabel: '❤️ HP',
+                coinLabel: '💰 Coins',
+                levelLabel: '⭐ Level',
+                playerName: 'You',
+                enemyName: 'Enemy',
+                
+                // Actions
+                actionsTitle: 'Choose your action:',
+                attack: '⚔️ Attack',
+                attackCost: 'Cost: 1 AP',
+                skills: '🎯 Skills',
+                items: '🎒 Items',
+                shop: '🛒 Shop',
+                skipTurn: '⏭ Skip Turn',
+                revive: '💚 Revive',
+                reviveCost: 'Cost: 5 AP',
+                
+                // Modals
+                skillsTitle: '🎯 Skills',
+                itemsTitle: '🎒 Items',
+                shopTitle: '🛒 Shop',
+                saveTitle: '💾 Save Game',
+                leaderboardTitle: '🏆 Leaderboard',
+                achievementsTitle: '🎖️ Achievements',
+                coopTitle: '👥 Coop Mode',
+                settingsTitle: '⚙️ Settings',
+                close: '× Close',
+                
+                // Coop
+                coopInfo: 'Play with friends via local network!',
+                wifiMethod: 'WiFi Direct',
+                wifiMethodDesc: 'Connect via local network',
+                bluetoothMethod: 'Bluetooth',
+                bluetoothMethodDesc: 'Direct connection via Bluetooth',
+                linkMethod: 'Share Link',
+                linkMethodDesc: 'Share via link',
+                coopStep1: 'One person starts the game and clicks "Host Game"',
+                coopStep2: 'Second person enters the IP and Port',
+                hostGame: '🏠 Host Game',
+                joinGame: '🔗 Join Game',
+                waiting: 'Waiting for opponent...',
+                connected: 'Connected!',
+                hostAddressLabel: 'Enter host address (IP:Port):',
+                hostAddressPlaceholder: 'e.g. 192.168.1.100:8080',
+                connect: '🔗 Connect',
+                cancel: '❌ Cancel',
+                bluetoothInfo: 'For Bluetooth connection, please use Chrome browser on Android.',
+                scanDevices: '🔍 Scan Devices',
+                makeDiscoverable: '📡 Make Discoverable',
+                linkInfo: 'Share the link with friends to join your game.',
+                gameLinkLabel: 'Game Link:',
+                copyLink: '📋 Copy Link',
+                share: '📤 Share',
+                howToShare: 'How to Share:',
+                shareStep1: 'Copy the link',
+                shareStep2: 'Send it to your friends (Telegram, WhatsApp, etc.)',
+                shareStep3: 'Friends open the link',
+                shareStep4: 'Play together!',
+                
+                // Settings
+                soundSettings: 'Sound',
+                soundEffects: 'Sound Effects',
+                backgroundMusic: 'Background Music',
+                difficultySettings: 'Difficulty',
+                easy: 'Easy',
+                normal: 'Normal',
+                hard: 'Hard',
+                expert: 'Expert',
+                
+                // Game Over
+                gameOverTitle: '💀 Game Over!',
+                reachedStage: 'Reached Stage:',
+                finalScore: 'Final Score:',
+                enemiesKilled: 'Enemies Killed:',
+                bossesDefeated: 'Bosses Defeated:',
+                correctAnswers: 'Correct Answers:',
+                restart: 'Restart',
+                reviveWithCoins: '💚 Revive with 50 Coins',
+                
+                // Victory
+                victoryTitle: '🎉 Victory!',
+                finalStage: 'Final Stage:',
+                saveScore: 'Save Score',
+                enterName: 'Enter your name',
+                
+                // Level Up
+                levelUpTitle: '🎉 Level Up!',
+                levelUpMessage: 'You reached a new level!',
+                continue: 'Continue',
+                
+                // Messages
+                getReady: 'Get Ready...',
+                correct: '✔ Correct! +1 AP',
+                wrong: '✖ Wrong! Correct answer:',
+                enemyAttack: 'Enemy dealt',
+                damage: 'damage!',
+                enemyDefeated: '🎯 Enemy defeated! +',
+                points: 'points',
+                bossDefeated: '🎉 Boss defeated! +',
+                miniBossDefeated: '🎉 Mini Boss defeated! +',
+                coinsEarned: 'Coins earned!',
+                notEnoughAP: 'Not enough AP!',
+                notEnoughCoins: 'Not enough coins!',
+                skillUsed: 'used!',
+                healed: 'HP healed!',
+                shieldActivated: 'Shield activated! (',
+                damageReduced: 'damage reduced)',
+                frozen: 'Enemy frozen! Skips next turn.',
+                turnSkipped: 'Turn skipped.',
+                revived: '💚 Revived!',
+                hpRestored: 'HP restored!',
+                gameSaved: '💾 Game saved in slot',
+                gameLoaded: '📂 Game loaded from slot',
+                noSaveFound: 'No save found!',
+                errorLoading: 'Error loading game!',
+                saveDeleted: '🗑️ Save deleted!',
+                noSaves: 'No saves found!',
+                newSave: 'New Save',
+                currentStage: 'Current Stage:',
+                score: 'Score:',
+                date: 'Date:',
+                load: 'Load',
+                delete: 'Delete',
+                save: 'Save',
+                noLeaderboard: 'No scores recorded yet!',
+                scoreSaved: 'Score saved to leaderboard!',
+                hostingCanceled: 'Hosting canceled.',
+                connectedToHost: 'Connected to host!',
+                linkCopied: 'Link copied!',
+                shareFailed: 'Sharing failed. Please copy the link.',
+                shareNotSupported: 'Your browser does not support sharing. Please copy the link.',
+                deviceDiscoverable: 'Device is discoverable!',
+                scanningDevices: 'Scanning for devices...',
+                devicesFound: 'devices found!',
+                connectingTo: 'Connecting to',
+                achievementUnlocked: '🎖️ Achievement "',
+                unlocked: '" unlocked!',
+                
+                // Shop
+                yourCoins: 'Your coins:',
+                buy: 'Buy',
+                bought: 'bought!',
+                alreadyOwned: 'Already owned',
+                notEnoughCoinsShop: 'Not enough coins!',
+                
+                // Items and Skills
+                fireball: 'Fireball',
+                heal: 'Heal',
+                doubleAttack: 'Double Attack',
+                shield: 'Shield',
+                freeze: 'Freeze',
+                lightning: 'Lightning',
+                megaHeal: 'Mega Heal',
+                potion: 'Potion',
+                mana: 'Mana',
+                bigPotion: 'Big Potion',
+                superMana: 'Super Mana',
+                fullHeal: 'Full Heal',
+                apBoost: 'AP Boost',
+                
+                // Descriptions
+                fireballDesc: 'Deals 15 damage',
+                healDesc: 'Heals 20 HP',
+                doubleAttackDesc: 'Deals 10 damage twice',
+                shieldDesc: 'Reduces damage by 8',
+                freezeDesc: 'Freezes enemy',
+                lightningDesc: 'Deals 25 damage',
+                megaHealDesc: 'Heals 50 HP',
+                potionDesc: 'Heals 25 HP',
+                manaDesc: '+2 AP',
+                bigPotionDesc: 'Heals 50 HP',
+                superManaDesc: '+4 AP',
+                fullHealDesc: 'Fully heals HP',
+                apBoostDesc: '+5 AP',
+                
+                // Credits
+                credits: 'Made with ❤️ by Zahra Fanderski'
+            },
+            fa: {
+                // Menu
+                menuTitle: '🎮 Math RPG',
+                menuSubtitle: 'بازی ریاضی نوبتی - پاسخ بده و جنگ کن!',
+                newGame: '🆕 بازی جدید',
+                coopMode: '👥 حالت کوآپ',
+                loadGame: '📂 ادامه بازی',
+                leaderboard: '🏆 لیدربورد',
+                achievements: '🎖️ دستاوردها',
+                settings: '⚙️ تنظیمات',
+                
+                // Game
+                gameTitle: 'Math RPG',
+                stageLabel: '🔥 مرحله',
+                scoreLabel: '🏆 امتیاز',
+                apLabel: '⚡ AP',
+                hpLabel: '❤️ HP',
+                coinLabel: '💰 سکه',
+                levelLabel: '⭐ سطح',
+                playerName: 'شما',
+                enemyName: 'دشمن',
+                
+                // Actions
+                actionsTitle: 'اکشن خود را انتخاب کنید:',
+                attack: '⚔️ حمله',
+                attackCost: 'هزینه: 1 AP',
+                skills: '🎯 مهارت‌ها',
+                items: '🎒 آیتم‌ها',
+                shop: '🛒 فروشگاه',
+                skipTurn: '⏭ رد نوبت',
+                revive: '💚 احیا',
+                reviveCost: 'هزینه: 5 AP',
+                
+                // Modals
+                skillsTitle: '🎯 مهارت‌ها',
+                itemsTitle: '🎒 آیتم‌ها',
+                shopTitle: '🛒 فروشگاه',
+                saveTitle: '💾 سیو بازی',
+                leaderboardTitle: '🏆 لیدربورد',
+                achievementsTitle: '🎖️ دستاوردها',
+                coopTitle: '👥 حالت کوآپ',
+                settingsTitle: '⚙️ تنظیمات',
+                close: '× بستن',
+                
+                // Coop
+                coopInfo: 'با دوستان خود از طریق شبکه محلی بازی کنید!',
+                wifiMethod: 'WiFi Direct',
+                wifiMethodDesc: 'اتصال از طریق شبکه محلی',
+                bluetoothMethod: 'بلوتوث',
+                bluetoothMethodDesc: 'اتصال مستقیم از طریق بلوتوث',
+                linkMethod: 'لینک اشتراکی',
+                linkMethodDesc: 'اشتراک گذاری از طریق لینک',
+                coopStep1: 'یک نفر بازی رو شروع کنه و روی "میزبانی" کلیک کنه',
+                coopStep2: 'نفر دوم آی پی و پورت رو وارد کنه',
+                hostGame: '🏠 میزبانی بازی',
+                joinGame: '🔗 پیوستن به بازی',
+                waiting: 'در انتظار اتصال حریف...',
+                connected: 'حریف متصل شد!',
+                hostAddressLabel: 'آدرس میزبان رو وارد کنید (IP:Port):',
+                hostAddressPlaceholder: 'مثال: 192.168.1.100:8080',
+                connect: '🔗 اتصال',
+                cancel: '❌ لغو',
+                bluetoothInfo: 'برای اتصال از طریق بلوتوث، لطفاً از مرورگر کروم در اندروید استفاده کنید.',
+                scanDevices: '🔍 جستجوی دستگاه‌ها',
+                makeDiscoverable: '📡 قابل کشف کردن',
+                linkInfo: 'با اشتراک گذاری لینک، دوستانتون میتونن به بازی شما بپیوندن.',
+                gameLinkLabel: 'لینک بازی:',
+                copyLink: '📋 کپی لینک',
+                share: '📤 اشتراک گذاری',
+                howToShare: 'نحوه اشتراک گذاری:',
+                shareStep1: 'لینک رو کپی کنید',
+                shareStep2: 'برای دوستانتون ارسال کنید (تلگرام، واتساپ و...)',
+                shareStep3: 'دوستانتون لینک رو باز کنن',
+                shareStep4: 'همزمان بازی کنید!',
+                
+                // Settings
+                soundSettings: 'صدا',
+                soundEffects: 'جلوه‌های صوتی',
+                backgroundMusic: 'موسیقی پس‌زمینه',
+                difficultySettings: 'سختی',
+                easy: 'آسان',
+                normal: 'عادی',
+                hard: 'سخت',
+                expert: 'حرفه‌ای',
+                
+                // Game Over
+                gameOverTitle: '💀 بازی تمام شد!',
+                reachedStage: 'مرحله رسیدن:',
+                finalScore: 'امتیاز نهایی:',
+                enemiesKilled: 'دشمنان کشته شده:',
+                bossesDefeated: 'باس‌های شکست داده:',
+                correctAnswers: 'سوال‌های درست:',
+                restart: 'شروع مجدد',
+                reviveWithCoins: '💚 احیا با 50 سکه',
+                
+                // Victory
+                victoryTitle: '🎉 پیروز شدید!',
+                finalStage: 'مرحله نهایی:',
+                saveScore: 'ذخیره امتیاز',
+                enterName: 'نام خود را وارد کنید',
+                
+                // Level Up
+                levelUpTitle: '🎉 لول آپ!',
+                levelUpMessage: 'به سطح جدید رسیدید!',
+                continue: 'ادامه',
+                
+                // Messages
+                getReady: 'آماده شوید...',
+                correct: '✔ درست! +1 AP',
+                wrong: '✖ غلط! پاسخ درست:',
+                enemyAttack: 'دشمن',
+                damage: 'آسیب وارد کرد!',
+                enemyDefeated: '🎯 دشمن شکست داده شد! +',
+                points: 'امتیاز',
+                bossDefeated: '🎉 باس شکست داده شد! +',
+                miniBossDefeated: '🎉 مینی باس شکست داده شد! +',
+                coinsEarned: 'سکه کسب شد!',
+                notEnoughAP: 'AP کافی ندارید!',
+                notEnoughCoins: 'سکه کافی ندارید!',
+                skillUsed: 'استفاده شد!',
+                healed: 'HP درمان شد!',
+                shieldActivated: 'سپر فعال شد! (',
+                damageReduced: 'آسیب کمتر)',
+                frozen: 'دشمن فریز شد! نوبت بعدی را از دست می‌دهد.',
+                turnSkipped: 'نوبت رد شد.',
+                revived: '💚 احیا!',
+                hpRestored: 'HP درمان شد!',
+                gameSaved: '💾 بازی در اسلات',
+                gameLoaded: '📂 بازی از اسلات',
+                noSaveFound: 'فایل سیو یافت نشد!',
+                errorLoading: 'خطا در لود بازی!',
+                saveDeleted: '🗑️ سیو حذف شد!',
+                noSaves: 'هیچ سیوی یافت نشد!',
+                newSave: 'سیو جدید',
+                currentStage: 'مرحله فعلی:',
+                score: 'امتیاز:',
+                date: 'تاریخ:',
+                load: 'لود',
+                delete: 'حذف',
+                save: 'ذخیره',
+                noLeaderboard: 'هیچ امتیازی ثبت نشده است!',
+                scoreSaved: 'امتیاز شما در لیدربورد ذخیره شد!',
+                hostingCanceled: 'میزبانی لغو شد.',
+                connectedToHost: 'به میزبان متصل شدید!',
+                linkCopied: 'لینک کپی شد!',
+                shareFailed: 'اشتراک گذاری با مشکل مواجه شد. لطفاً لینک رو کپی کنید.',
+                shareNotSupported: 'مرورگر شما از اشتراک گذاری پشتیبانی نمیکنه. لطفاً لینک رو کپی کنید.',
+                deviceDiscoverable: 'دستگاه قابل کشف است!',
+                scanningDevices: 'در حال جستجوی دستگاه‌ها...',
+                devicesFound: 'دستگاه یافت شد!',
+                connectingTo: 'در حال اتصال به',
+                achievementUnlocked: '🎖️ دستاورد "',
+                unlocked: '" باز شد!',
+                
+                // Shop
+                yourCoins: 'سکه‌های شما:',
+                buy: 'خرید',
+                bought: 'خریداری شد!',
+                alreadyOwned: 'خریداری شده',
+                notEnoughCoinsShop: 'سکه کافی ندارید!',
+                
+                // Items and Skills
+                fireball: 'Fireball',
+                heal: 'Heal',
+                doubleAttack: 'Double Attack',
+                shield: 'Shield',
+                freeze: 'Freeze',
+                lightning: 'Lightning',
+                megaHeal: 'Mega Heal',
+                potion: 'Potion',
+                mana: 'Mana',
+                bigPotion: 'Big Potion',
+                superMana: 'Super Mana',
+                fullHeal: 'Full Heal',
+                apBoost: 'AP Boost',
+                
+                // Descriptions
+                fireballDesc: '15 آسیب',
+                healDesc: '20 HP درمان',
+                doubleAttackDesc: '10 آسیب ×۲',
+                shieldDesc: '8 آسیب کمتر',
+                freezeDesc: 'فریز دشمن',
+                lightningDesc: '25 آسیب',
+                megaHealDesc: '50 HP درمان',
+                potionDesc: '25 HP درمان',
+                manaDesc: '+2 AP',
+                bigPotionDesc: '50 HP درمان',
+                superManaDesc: '+4 AP',
+                fullHealDesc: 'درمان کامل HP',
+                apBoostDesc: '+5 AP',
+                
+                // Credits
+                credits: 'ساخته شده با ❤️ توسط زهره فندرسکی'
+            }
+        };
+
+        // ========== ACHIEVEMENTS SYSTEM ==========
+        const achievements = {
+            firstBlood: { id: 'firstBlood', name: { en: 'First Blood', fa: 'اولین خون' }, desc: { en: 'Kill your first enemy', fa: 'اولین دشمن رو بکش' }, completed: false, progress: 0, target: 1 },
+            bossSlayer: { id: 'bossSlayer', name: { en: 'Boss Slayer', fa: 'کشنده باس' }, desc: { en: 'Defeat your first boss', fa: 'اولین باس رو شکست بده' }, completed: false, progress: 0, target: 1 },
+            miniBossHunter: { id: 'miniBossHunter', name: { en: 'Mini Boss Hunter', fa: 'شکارچی مینی باس' }, desc: { en: 'Defeat 5 mini bosses', fa: '۵ مینی باس رو شکست بده' }, completed: false, progress: 0, target: 5 },
+            mathMaster: { id: 'mathMaster', name: { en: 'Math Master', fa: 'استاد ریاضی' }, desc: { en: 'Answer 100 questions correctly', fa: '۱۰۰ سوال رو درست جواب بده' }, completed: false, progress: 0, target: 100 },
+            perfectStreak: { id: 'perfectStreak', name: { en: 'Perfect Streak', fa: 'رشته کامل' }, desc: { en: 'Answer 10 questions correctly in a row', fa: '۱۰ سوال رو پشت سر هم درست جواب بده' }, completed: false, progress: 0, target: 10 },
+            richPlayer: { id: 'richPlayer', name: { en: 'Rich Player', fa: 'بازیکن ثروتمند' }, desc: { en: 'Collect 1000 coins', fa: '۱۰۰۰ سکه جمع کن' }, completed: false, progress: 0, target: 1000 },
+            levelUp: { id: 'levelUp', name: { en: 'Level Up', fa: 'لول آپ' }, desc: { en: 'Reach level 5', fa: 'به سطح ۵ برس' }, completed: false, progress: 0, target: 5 },
+            highLevel: { id: 'highLevel', name: { en: 'High Level', fa: 'سطح بالا' }, desc: { en: 'Reach level 20', fa: 'به سطح ۲۰ برس' }, completed: false, progress: 0, target: 20 },
+            stage100: { id: 'stage100', name: { en: 'Stage 100', fa: 'صد مرحله' }, desc: { en: 'Reach stage 100', fa: 'به مرحله ۱۰۰ برس' }, completed: false, progress: 0, target: 100 },
+            stage500: { id: 'stage500', name: { en: 'Stage 500', fa: 'پنجاه مرحله' }, desc: { en: 'Reach stage 500', fa: 'به مرحله ۵۰۰ برس' }, completed: false, progress: 0, target: 500 },
+            stage1000: { id: 'stage1000', name: { en: 'Stage 1000', fa: 'هزار مرحله' }, desc: { en: 'Reach stage 1000', fa: 'به مرحله ۱۰۰۰ برس' }, completed: false, progress: 0, target: 1000 },
+            apMaster: { id: 'apMaster', name: { en: 'AP Master', fa: 'استاد AP' }, desc: { en: 'Collect 100 AP', fa: '۱۰۰ AP جمع کن' }, completed: false, progress: 0, target: 100 },
+            healer: { id: 'healer', name: { en: 'Healer', fa: 'درمانگر' }, desc: { en: 'Use Heal skill 10 times', fa: '۱۰ بار از مهارت درمان استفاده کن' }, completed: false, progress: 0, target: 10 },
+            fireMage: { id: 'fireMage', name: { en: 'Fire Mage', fa: 'جادوگر آتش' }, desc: { en: 'Use Fireball 20 times', fa: '۲۰ بار از Fireball استفاده کن' }, completed: false, progress: 0, target: 20 },
+            shopper: { id: 'shopper', name: { en: 'Shopper', fa: 'خریدار' }, desc: { en: 'Buy 10 items from shop', fa: '۱۰ آیتم از فروشگاه بخر' }, completed: false, progress: 0, target: 10 },
+            fullHP: { id: 'fullHP', name: { en: 'Full HP', fa: 'HP کامل' }, desc: { en: 'Reach 200 max HP', fa: 'HP رو به ۲۰۰ برسون' }, completed: false, progress: 0, target: 200 },
+            attackMaster: { id: 'attackMaster', name: { en: 'Attack Master', fa: 'استاد حمله' }, desc: { en: 'Reach 50 attack', fa: 'حمله رو به ۵۰ برسون' }, completed: false, progress: 0, target: 50 },
+            endlessSurvivor: { id: 'endlessSurvivor', name: { en: 'Endless Survivor', fa: 'بقای بینهایت' }, desc: { en: 'Reach stage 100 in endless mode', fa: 'در حالت بینهایت به مرحله ۱۰۰ برس' }, completed: false, progress: 0, target: 100 },
+            score10000: { id: 'score10000', name: { en: 'High Score', fa: 'امتیاز بالا' }, desc: { en: 'Reach 10000 score', fa: 'به ۱۰۰۰۰ امتیاز برس' }, completed: false, progress: 0, target: 10000 },
+            coopPlayer: { id: 'coopPlayer', name: { en: 'Coop Player', fa: 'بازیکن کوآپ' }, desc: { en: 'Complete a coop game', fa: 'یک بازی کوآپ انجام بده' }, completed: false, progress: 0, target: 1 }
+        };
+
+        function loadAchievements() {
+            const saved = localStorage.getItem(GAME_CONFIG.ACHIEVEMENTS_KEY);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    for (const key in achievements) {
+                        if (data[key]) {
+                            achievements[key] = { ...achievements[key], ...data[key] };
+                        }
+                    }
+                } catch (e) {}
+            }
+        }
+
+        function saveAchievements() {
+            localStorage.setItem(GAME_CONFIG.ACHIEVEMENTS_KEY, JSON.stringify(achievements));
+        }
+
+        function updateAchievement(id, progress) {
+            if (achievements[id]) {
+                achievements[id].progress += progress;
+                if (achievements[id].progress >= achievements[id].target) {
+                    achievements[id].completed = true;
+                    const lang = GAME_CONFIG.LANGUAGE;
+                    const name = translations[lang].achievementUnlocked + achievements[id].name[lang] + ' ' + translations[lang].unlocked;
+                    showMessage(name, 'success');
+                    playSound('achievement');
+                }
+                saveAchievements();
+            }
+        }
+
+        function updateAchievementsUI() {
+            const list = document.getElementById('achievements-list');
+            const lang = GAME_CONFIG.LANGUAGE;
+            list.innerHTML = '';
+            
+            for (const key in achievements) {
+                const achievement = achievements[key];
+                const item = document.createElement('div');
+                item.className = 'achievement-item';
+                
+                const progressText = achievement.completed ? 
+                    `<span class="achievement-progress achievement-completed">✅ ${translations[lang].completed}</span>` :
+                    `<span class="achievement-progress">${achievement.progress}/${achievement.target}</span>`;
+                
+                item.innerHTML = `
+                    <span class="achievement-icon">🎖️</span>
+                    <div class="achievement-info">
+                        <div class="achievement-name">${achievement.name[lang]}</div>
+                        <div class="achievement-desc">${achievement.desc[lang]}</div>
+                    </div>
+                    ${progressText}
+                `;
+                
+                if (achievement.completed) {
+                    item.style.opacity = '1';
+                } else {
+                    item.style.opacity = '0.7';
+                }
+                
+                list.appendChild(item);
+            }
+        }
+
+        // ========== SOUND SYSTEM ==========
+        const soundSettings = {
+            enabled: true,
+            musicEnabled: true,
+            volume: 0.5,
+            musicVolume: 0.3
+        };
+
+        let audioContext = null;
+        let bgMusic = document.getElementById('bg-music');
+        
+        // Extended theme music list - now with music for all themes
+        const themeMusic = {
+            // Original themes
+            'جنگل': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+            'Forest': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+            'بیابان': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+            'Desert': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+            'فضا': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+            'Space': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+            'آتش': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+            'Fire': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+            'یخ': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+            'Ice': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+            
+            // Additional themes - using SoundHelix songs 6-10
+            'دریا': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+            'Ocean': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+            'کوهستان': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+            'Mountain': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+            'غار': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+            'Cave': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3',
+            'آسمان': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
+            'Sky': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3',
+            'شب': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
+            'Night': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3',
+            
+            // More themes - cycle through available songs
+            'روز': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+            'Day': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+            'برف': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+            'Snow': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+            'باران': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+            'Rain': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+            'طوفان': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+            'Storm': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3',
+            'چمنزار': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+            'Meadow': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3',
+            'صحرا': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+            'Desert2': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3',
+            'جنگل بارانی': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+            'Rainforest': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3',
+            
+            // Default music for any theme not in the list
+            'default': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+        };
+
+        function initAudio() {
+            try {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+
+        function createTone(frequencies, duration = 0.3) {
+            if (!audioContext) return;
+            
+            const now = audioContext.currentTime;
+            const gainNode = audioContext.createGain();
+            gainNode.gain.setValueAtTime(soundSettings.volume * 0.5, now);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            gainNode.connect(audioContext.destination);
+
+            frequencies.forEach((freq, i) => {
+                const oscillator = audioContext.createOscillator();
+                oscillator.type = ['sine', 'square', 'sawtooth', 'triangle'][i % 4];
+                oscillator.frequency.setValueAtTime(freq, now);
+                oscillator.connect(gainNode);
+                oscillator.start(now);
+                oscillator.stop(now + duration);
+            });
+        }
+
+        function playSound(name) {
+            if (!soundSettings.enabled) return;
+            
+            try {
+                switch(name) {
+                    case 'correct': createTone([523.25, 659.25, 783.99], 0.2); break;
+                    case 'wrong': createTone([261.63, 196.00], 0.3); break;
+                    case 'attack': createTone([440.00, 220.00], 0.15); break;
+                    case 'enemy': createTone([330.00, 165.00], 0.2); break;
+                    case 'levelup': 
+                        createTone([261.63, 329.63, 392.00, 523.25], 0.1);
+                        setTimeout(() => createTone([349.23, 440.00, 523.25], 0.15), 100);
+                        break;
+                    case 'boss': createTone([110.00, 55.00, 27.50], 0.4); break;
+                    case 'victory': 
+                        createTone([523.25, 659.25, 783.99, 1046.50], 0.2);
+                        setTimeout(() => createTone([587.33, 783.99, 987.77], 0.25), 200);
+                        break;
+                    case 'gameover': createTone([130.81, 87.31, 55.00], 0.5); break;
+                    case 'skill': createTone([698.46, 880.00, 1396.91], 0.2); break;
+                    case 'item': createTone([880.00, 1100.00], 0.15); break;
+                    case 'coin': createTone([1046.50, 1318.51], 0.1); break;
+                    case 'revive': createTone([523.25, 659.25, 783.99, 1046.50], 0.3); break;
+                    case 'achievement': createTone([783.99, 987.77, 1318.51], 0.3); break;
+                }
+            } catch (e) {
+                console.log('Error playing sound:', e);
+            }
+        }
+
+        function playBackgroundMusic(themeName) {
+            if (!soundSettings.musicEnabled || !bgMusic) return;
+            
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+            
+            // Try to find music for the theme (both English and Persian names)
+            let musicUrl = themeMusic[themeName];
+            
+            // If not found, try to find a matching theme
+            if (!musicUrl) {
+                const themeNames = Object.keys(themeMusic);
+                for (const name of themeNames) {
+                    if (name.toLowerCase().includes(themeName.toLowerCase()) || 
+                        themeName.toLowerCase().includes(name.toLowerCase())) {
+                        musicUrl = themeMusic[name];
+                        break;
+                    }
+                }
+            }
+            
+            // If still not found, use default
+            if (!musicUrl) {
+                musicUrl = themeMusic['default'];
+            }
+            
+            if (musicUrl) {
+                bgMusic.src = musicUrl;
+                bgMusic.volume = soundSettings.musicVolume;
+                bgMusic.play().catch(e => {
+                    console.log('Error playing music:', e);
+                });
+            }
+        }
+
+        function toggleSound() {
+            soundSettings.enabled = !soundSettings.enabled;
+            const soundBtn = document.getElementById('sound-btn');
+            soundBtn.classList.toggle('muted', !soundSettings.enabled);
+            soundBtn.textContent = soundSettings.enabled ? '🔊' : '🔇';
+        }
+
+        // ========== QUESTION DATABASE ==========
+        const questionDatabase = [];
+        
+        function generateQuestionDatabase() {
+            const database = [];
+            
+            // Generate 30000 average questions
+            for (let i = 0; i < GAME_CONFIG.QUESTION_COUNT; i++) {
+                const difficulty = Math.floor(i / (GAME_CONFIG.QUESTION_COUNT / 5)) + 1;
+                const count = Math.floor(Math.random() * 4) + 2; // 2-5 numbers
+                
+                const numbers = [];
+                for (let j = 0; j < count; j++) {
+                    // Generate numbers based on difficulty
+                    const maxNum = 500 * difficulty;
+                    const minNum = 1;
+                    numbers.push(Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum);
+                }
+                
+                const sum = numbers.reduce((a, b) => a + b, 0);
+                const answer = sum / numbers.length;
+                const question = `What is the average of ${numbers.join(', ')}?`;
+                
+                database.push({
+                    id: i + 1,
+                    text: question,
+                    answer: answer,
+                    numbers: numbers,
+                    difficulty: difficulty,
+                    count: count
+                });
+            }
+            
+            return database;
+        }
+        
+        // Initialize question database
+        questionDatabase.push(...generateQuestionDatabase());
+
+        // ========== SAVE SYSTEM ==========
+        function saveGame(slotIndex, name = '') {
+            const saveData = {
+                stage: gameState.stage,
+                score: gameState.score,
+                ap: gameState.ap,
+                playerHP: gameState.playerHP,
+                maxPlayerHP: gameState.maxPlayerHP,
+                coins: gameState.coins,
+                level: gameState.level,
+                xp: gameState.xp,
+                xpToLevel: gameState.xpToLevel,
+                correctAnswers: gameState.correctAnswers,
+                enemiesKilled: gameState.enemiesKilled,
+                bossesKilled: gameState.bossesKilled,
+                playerAttack: gameState.playerAttack,
+                playerDefense: gameState.playerDefense,
+                skills: gameState.skills,
+                items: gameState.items,
+                endlessMode: gameState.endlessMode,
+                name: name || `Save ${slotIndex + 1}`,
+                date: new Date().toISOString(),
+                difficulty: GAME_CONFIG.DIFFICULTY,
+                language: GAME_CONFIG.LANGUAGE
+            };
+            
+            localStorage.setItem(`math_rpg_save_${slotIndex}`, JSON.stringify(saveData));
+            const lang = GAME_CONFIG.LANGUAGE;
+            showMessage(translations[lang].gameSaved + ' ' + (slotIndex + 1) + '!', 'success');
+            playSound('correct');
+            return true;
+        }
+
+        function loadGame(slotIndex) {
+            const saveData = localStorage.getItem(`math_rpg_save_${slotIndex}`);
+            if (!saveData) {
+                const lang = GAME_CONFIG.LANGUAGE;
+                showMessage(translations[lang].noSaveFound, 'error');
+                playSound('wrong');
+                return false;
+            }
+            
+            try {
+                const data = JSON.parse(saveData);
+                
+                gameState.stage = data.stage || 1;
+                gameState.score = data.score || 0;
+                gameState.ap = data.ap || 0;
+                gameState.playerHP = data.playerHP || 100;
+                gameState.maxPlayerHP = data.maxPlayerHP || 100;
+                gameState.coins = data.coins || 0;
+                gameState.level = data.level || 1;
+                gameState.xp = data.xp || 0;
+                gameState.xpToLevel = data.xpToLevel || 100;
+                gameState.correctAnswers = data.correctAnswers || 0;
+                gameState.enemiesKilled = data.enemiesKilled || 0;
+                gameState.bossesKilled = data.bossesKilled || 0;
+                gameState.playerAttack = data.playerAttack || 10;
+                gameState.playerDefense = data.playerDefense || 0;
+                gameState.skills = data.skills || JSON.parse(JSON.stringify(initialSkills));
+                gameState.items = data.items || JSON.parse(JSON.stringify(initialItems));
+                gameState.endlessMode = data.endlessMode || false;
+                GAME_CONFIG.DIFFICULTY = data.difficulty || 'normal';
+                GAME_CONFIG.LANGUAGE = data.language || 'en';
+                
+                gameState.gameActive = true;
+                
+                elements.gameContainer.style.display = 'block';
+                elements.mainMenu.style.display = 'none';
+                
+                spawnEnemy();
+                generateQuestion();
+                updateUI();
+                
+                const theme = getCurrentTheme();
+                playBackgroundMusic(theme.name);
+                
+                const lang = GAME_CONFIG.LANGUAGE;
+                showMessage(translations[lang].gameLoaded + ' ' + (slotIndex + 1) + '!', 'success');
+                playSound('correct');
+                return true;
+            } catch (e) {
+                const lang = GAME_CONFIG.LANGUAGE;
+                showMessage(translations[lang].errorLoading, 'error');
+                playSound('wrong');
+                return false;
+            }
+        }
+
+        function deleteSave(slotIndex) {
+            localStorage.removeItem(`math_rpg_save_${slotIndex}`);
+            const lang = GAME_CONFIG.LANGUAGE;
+            showMessage(translations[lang].saveDeleted, 'success');
+            playSound('coin');
+            updateSaveSlots();
+        }
+
+        function getSaveSlots() {
+            const slots = [];
+            for (let i = 0; i < GAME_CONFIG.SAVE_SLOTS; i++) {
+                const saveData = localStorage.getItem(`math_rpg_save_${i}`);
+                if (saveData) {
+                    try {
+                        const data = JSON.parse(saveData);
+                        slots.push({
+                            index: i,
+                            name: data.name || `Save ${i + 1}`,
+                            stage: data.stage || 1,
+                            score: data.score || 0,
+                            date: data.date || ''
+                        });
+                    } catch (e) {}
+                }
+            }
+            return slots;
+        }
+
+        function updateSaveSlots() {
+            const saveSlotsContainer = document.getElementById('save-slots');
+            const slots = getSaveSlots();
+            const lang = GAME_CONFIG.LANGUAGE;
+            
+            if (slots.length === 0) {
+                saveSlotsContainer.innerHTML = `<p class="no-saves">${translations[lang].noSaves}</p>`;
+                return;
+            }
+            
+            saveSlotsContainer.innerHTML = '';
+            
+            const newSaveSlot = document.createElement('div');
+            newSaveSlot.className = 'save-slot';
+            newSaveSlot.innerHTML = `
+                <div class="save-slot-info">
+                    <div class="save-slot-name">${translations[lang].newSave}</div>
+                    <div class="save-slot-stats">${translations[lang].currentStage}: ${gameState.stage}</div>
+                </div>
+                <div class="save-slot-actions">
+                    <button class="btn-success save-btn-small" onclick="saveCurrentGame()">${translations[lang].save}</button>
+                </div>
+            `;
+            saveSlotsContainer.appendChild(newSaveSlot);
+            
+            slots.forEach(slot => {
+                const slotElement = document.createElement('div');
+                slotElement.className = 'save-slot';
+                const date = new Date(slot.date);
+                const dateStr = lang === 'fa' ? date.toLocaleDateString('fa-IR') : date.toLocaleDateString();
+                
+                slotElement.innerHTML = `
+                    <div class="save-slot-info">
+                        <div class="save-slot-name">${slot.name}</div>
+                        <div class="save-slot-stats">${translations[lang].stageLabel}: ${slot.stage} | ${translations[lang].scoreLabel}: ${slot.score}</div>
+                        <div class="save-slot-stats">${translations[lang].date}: ${dateStr}</div>
+                    </div>
+                    <div class="save-slot-actions">
+                        <button class="btn-info save-btn-small" onclick="loadSave(${slot.index})">${translations[lang].load}</button>
+                        <button class="btn-danger save-btn-small" onclick="deleteSave(${slot.index})">${translations[lang].delete}</button>
+                    </div>
+                `;
+                saveSlotsContainer.appendChild(slotElement);
+            });
+        }
+
+        function saveCurrentGame() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            const name = prompt(translations[lang].enterName + ' (Optional):');
+            if (name !== null) {
+                for (let i = 0; i < GAME_CONFIG.SAVE_SLOTS; i++) {
+                    if (!localStorage.getItem(`math_rpg_save_${i}`)) {
+                        saveGame(i, name);
+                        updateSaveSlots();
+                        return;
+                    }
+                }
+                if (confirm(translations[lang].allSlotsFull)) {
+                    const slots = getSaveSlots();
+                    if (slots.length > 0) {
+                        const oldest = slots.reduce((a, b) => new Date(a.date) < new Date(b.date) ? a : b);
+                        saveGame(oldest.index, name);
+                        updateSaveSlots();
+                    }
+                }
+            }
+        }
+
+        function loadSave(slotIndex) {
+            if (loadGame(slotIndex)) {
+                elements.saveModal.style.display = 'none';
+            }
+        }
+
+        // ========== LEADERBOARD SYSTEM ==========
+        function getLeaderboard() {
+            const leaderboard = localStorage.getItem(GAME_CONFIG.LEADERBOARD_KEY);
+            if (!leaderboard) return [];
+            
+            try {
+                return JSON.parse(leaderboard);
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function saveScore(name, score, stage, kills, bosses) {
+            const leaderboard = getLeaderboard();
+            
+            leaderboard.push({
+                name: name || 'Anonymous',
+                score: score,
+                stage: stage,
+                kills: kills,
+                bosses: bosses,
+                date: new Date().toISOString()
+            });
+            
+            leaderboard.sort((a, b) => b.score - a.score);
+            
+            if (leaderboard.length > 20) {
+                leaderboard.length = 20;
+            }
+            
+            localStorage.setItem(GAME_CONFIG.LEADERBOARD_KEY, JSON.stringify(leaderboard));
+            return leaderboard;
+        }
+
+        function updateLeaderboard() {
+            const leaderboardContainer = document.getElementById('leaderboard-content');
+            const leaderboard = getLeaderboard();
+            const lang = GAME_CONFIG.LANGUAGE;
+            
+            if (leaderboard.length === 0) {
+                leaderboardContainer.innerHTML = `<p class="no-saves">${translations[lang].noLeaderboard}</p>`;
+                return;
+            }
+            
+            let html = '<table class="leaderboard-table"><thead><tr><th>#</th><th>' + translations[lang].name + '</th><th>' + translations[lang].scoreLabel + '</th><th>' + translations[lang].stageLabel + '</th><th>' + translations[lang].date + '</th></tr></thead><tbody>';
+            
+            leaderboard.forEach((entry, index) => {
+                const date = new Date(entry.date);
+                const dateStr = lang === 'fa' ? date.toLocaleDateString('fa-IR') : date.toLocaleDateString();
+                
+                html += `
+                    <tr>
+                        <td class="leaderboard-rank">${index + 1}</td>
+                        <td class="leaderboard-name">${entry.name}</td>
+                        <td class="leaderboard-score">${entry.score}</td>
+                        <td class="leaderboard-stage">${entry.stage}</td>
+                        <td class="leaderboard-date">${dateStr}</td>
+                    </tr>
+                `;
+            });
+            
+            html += '</tbody></table>';
+            leaderboardContainer.innerHTML = html;
+        }
+
+        // ========== COOP SYSTEM (P2P) ==========
+        let isHost = false;
+        let isConnected = false;
+        let peerConnection = null;
+        let dataChannel = null;
+        let coopId = '';
+        let remotePlayer = {
+            ap: 0,
+            hp: 100,
+            maxHP: 100,
+            name: 'Opponent',
+            action: null
+        };
+        let gameRoomId = '';
+        let isMultiplayer = false;
+
+        // WebRTC configuration
+        const iceServers = {
+            iceServers: [
+                { urls: 'stun:stun.l.google.com:19302' },
+                { urls: 'stun:stun1.l.google.com:19302' },
+                { urls: 'stun:stun2.l.google.com:19302' }
+            ]
+        };
+
+        // For link sharing
+        function generateGameLink() {
+            const roomId = generateRoomId();
+            gameRoomId = roomId;
+            const baseUrl = window.location.origin + window.location.pathname;
+            return `${baseUrl}?room=${roomId}&player=1`;
+        }
+
+        function generateRoomId() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let id = '';
+            for (let i = 0; i < 8; i++) {
+                id += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return id;
+        }
+
+        function initLinkSharing() {
+            const link = generateGameLink();
+            document.getElementById('game-link-input').value = link;
+            
+            // Check if we're joining a room
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('room');
+            const playerNum = urlParams.get('player');
+            
+            if (roomId && playerNum) {
+                // We're joining a room
+                gameRoomId = roomId;
+                isMultiplayer = true;
+                
+                if (playerNum === '1') {
+                    // Host
+                    isHost = true;
+                    startHostingLink();
+                } else {
+                    // Guest
+                    isHost = false;
+                    joinRoom(roomId);
+                }
+            }
+        }
+
+        function startHostingLink() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('link-section').style.display = 'block';
+            document.getElementById('wifi-section').style.display = 'none';
+            document.getElementById('bluetooth-section').style.display = 'none';
+            
+            const link = generateGameLink();
+            document.getElementById('game-link-input').value = link;
+            
+            showMessage(translations[lang].linkCreated, 'success');
+        }
+
+        function copyLink() {
+            const linkInput = document.getElementById('game-link-input');
+            linkInput.select();
+            document.execCommand('copy');
+            const lang = GAME_CONFIG.LANGUAGE;
+            showMessage(translations[lang].linkCopied, 'success');
+            playSound('correct');
+        }
+
+        function shareLink() {
+            const link = document.getElementById('game-link-input').value;
+            const lang = GAME_CONFIG.LANGUAGE;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Math RPG - Turn-Based Math Game',
+                    text: translations[lang].shareText || 'Join me in Math RPG game!',
+                    url: link
+                }).catch(e => {
+                    showMessage(translations[lang].shareFailed, 'error');
+                });
+            } else {
+                showMessage(translations[lang].shareNotSupported, 'warning');
+            }
+        }
+
+        function joinRoom(roomId) {
+            gameRoomId = roomId;
+            isMultiplayer = true;
+            isHost = false;
+            
+            // In a real P2P implementation, we would use WebRTC here
+            // For now, we'll simulate it with localStorage polling
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            showMessage(translations[lang].connectedToHost, 'success');
+            playSound('correct');
+            
+            // Start the game
+            startGame();
+        }
+
+        // Simplified P2P using localStorage (for same device testing)
+        // In a real implementation, you would use WebRTC
+        function initP2P() {
+            // Check for room parameter
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('room');
+            
+            if (roomId) {
+                gameRoomId = roomId;
+                isMultiplayer = true;
+                
+                const playerNum = urlParams.get('player');
+                if (playerNum === '1') {
+                    isHost = true;
+                } else {
+                    isHost = false;
+                }
+            }
+        }
+
+        function selectConnectionMethod(method) {
+            // Remove selected class from all methods
+            document.querySelectorAll('.connection-method').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            // Hide all sections
+            document.getElementById('wifi-section').style.display = 'none';
+            document.getElementById('bluetooth-section').style.display = 'none';
+            document.getElementById('link-section').style.display = 'none';
+            
+            // Show selected section
+            if (method === 'wifi') {
+                document.getElementById('wifi-section').style.display = 'block';
+                document.getElementById('wifi-method').classList.add('selected');
+            } else if (method === 'bluetooth') {
+                document.getElementById('bluetooth-section').style.display = 'block';
+                document.getElementById('bluetooth-method').classList.add('selected');
+                initBluetooth();
+            } else if (method === 'link') {
+                document.getElementById('link-section').style.display = 'block';
+                document.getElementById('link-method').classList.add('selected');
+                initLinkSharing();
+            }
+        }
+
+        function startHosting() {
+            isHost = true;
+            coopId = generateCoopId();
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('wifi-hosting-section').style.display = 'block';
+            document.getElementById('wifi-host-section').style.display = 'none';
+            document.getElementById('wifi-id').textContent = `Address: ${window.location.hostname}:${GAME_CONFIG.SERVER_PORT}`;
+            
+            showMessage(translations[lang].waiting, 'warning');
+            
+            // In a real implementation, we would start a WebSocket server here
+            // For now, we'll simulate it
+            setTimeout(() => {
+                document.querySelector('.coop-status.waiting').textContent = translations[lang].connected;
+                document.querySelector('.coop-status.waiting').className = 'coop-status connected';
+                isConnected = true;
+                showMessage(translations[lang].connectedToHost, 'success');
+                playSound('correct');
+            }, 3000);
+        }
+
+        function cancelHosting() {
+            isHost = false;
+            isConnected = false;
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('wifi-hosting-section').style.display = 'none';
+            document.getElementById('wifi-host-section').style.display = 'block';
+            showMessage(translations[lang].hostingCanceled, 'warning');
+        }
+
+        function joinWifiGame() {
+            document.getElementById('wifi-hosting-section').style.display = 'none';
+            document.getElementById('wifi-joining-section').style.display = 'block';
+        }
+
+        function cancelJoin() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('wifi-joining-section').style.display = 'none';
+            document.getElementById('wifi-host-section').style.display = 'block';
+        }
+
+        function connectWifi() {
+            const address = document.getElementById('host-address-input').value.trim();
+            if (!address) {
+                const lang = GAME_CONFIG.LANGUAGE;
+                document.getElementById('wifi-join-status').innerHTML = `<span style="color: #ff4444;">${translations[lang].enterAddress}</span>`;
+                return;
+            }
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('wifi-join-status').innerHTML = `<span style="color: #ffaa00;">${translations[lang].connectingTo} ${address}...</span>`;
+            
+            // In a real implementation, we would connect to the WebSocket server here
+            // For now, we'll simulate it
+            setTimeout(() => {
+                isConnected = true;
+                document.getElementById('wifi-join-status').innerHTML = `<span style="color: #66ff66;">${translations[lang].connectedToHost}</span>`;
+                showMessage(translations[lang].connectedToHost, 'success');
+                playSound('correct');
+                
+                setTimeout(() => {
+                    elements.coopModal.style.display = 'none';
+                    startGame();
+                }, 1000);
+            }, 2000);
+        }
+
+        // Bluetooth functions (simulated)
+        function initBluetooth() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('bt-status').innerHTML = `<span style="color: #ffaa00;">${translations[lang].scanningDevices}</span>`;
+            
+            // Simulate device discovery
+            setTimeout(() => {
+                const peerList = document.getElementById('peer-list');
+                peerList.innerHTML = `
+                    <div class="peer-item" onclick="connectBluetooth('Device_1')">
+                        <span class="peer-name">Device 1</span>
+                        <span class="peer-id">ABC123</span>
+                        <span class="connect-status disconnected">${translations[lang].disconnected}</span>
+                    </div>
+                    <div class="peer-item" onclick="connectBluetooth('Device_2')">
+                        <span class="peer-name">Device 2</span>
+                        <span class="peer-id">DEF456</span>
+                        <span class="connect-status disconnected">${translations[lang].disconnected}</span>
+                    </div>
+                `;
+                document.getElementById('bt-status').innerHTML = `<span style="color: #66ff66;">${translations[lang].devicesFound}</span>`;
+            }, 2000);
+        }
+
+        function connectBluetooth(deviceId) {
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('bt-status').innerHTML = `<span style="color: #ffaa00;">${translations[lang].connectingTo} ${deviceId}...</span>`;
+            
+            setTimeout(() => {
+                isConnected = true;
+                document.getElementById('bt-status').innerHTML = `<span style="color: #66ff66;">${translations[lang].connectedToHost}</span>`;
+                showMessage(translations[lang].connectedToHost, 'success');
+                playSound('correct');
+                
+                setTimeout(() => {
+                    elements.coopModal.style.display = 'none';
+                    startGame();
+                }, 1000);
+            }, 2000);
+        }
+
+        function makeDiscoverable() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            document.getElementById('bt-status').innerHTML = `<span style="color: #66ff66;">${translations[lang].deviceDiscoverable}</span>`;
+            showMessage(translations[lang].deviceDiscoverable, 'success');
+        }
+
+        function updateCoopUI() {
+            document.getElementById('remote-hp').textContent = remotePlayer.hp;
+            document.getElementById('remote-ap').textContent = remotePlayer.ap;
+        }
+
+        // ========== GAME STATE ==========
+        const initialSkills = {
+            fireball: { name: { en: 'Fireball', fa: 'Fireball' }, cost: 2, damage: 15, owned: true, count: 10 },
+            heal: { name: { en: 'Heal', fa: 'Heal' }, cost: 2, heal: 20, owned: true, count: 10 },
+            doubleAttack: { name: { en: 'Double Attack', fa: 'Double Attack' }, cost: 3, damage: 10, owned: false, count: 0 },
+            shield: { name: { en: 'Shield', fa: 'Shield' }, cost: 1, shield: 8, owned: false, count: 0 },
+            freeze: { name: { en: 'Freeze', fa: 'Freeze' }, cost: 3, effect: 'skip', owned: false, count: 0 },
+            lightning: { name: { en: 'Lightning', fa: 'Lightning' }, cost: 4, damage: 25, owned: false, count: 0 },
+            megaHeal: { name: { en: 'Mega Heal', fa: 'Mega Heal' }, cost: 4, heal: 50, owned: false, count: 0 }
+        };
+
+        const initialItems = {
+            potion: { name: { en: 'Potion', fa: 'Potion' }, cost: 1, heal: 25, owned: true, count: 5 },
+            mana: { name: { en: 'Mana', fa: 'Mana' }, cost: 1, ap: 2, owned: true, count: 3 },
+            bigPotion: { name: { en: 'Big Potion', fa: 'Big Potion' }, cost: 1, heal: 50, owned: false, count: 0 },
+            superMana: { name: { en: 'Super Mana', fa: 'Super Mana' }, cost: 1, ap: 4, owned: false, count: 0 },
+            fullHeal: { name: { en: 'Full Heal', fa: 'Full Heal' }, cost: 2, heal: 100, owned: false, count: 0 },
+            apBoost: { name: { en: 'AP Boost', fa: 'AP Boost' }, cost: 2, ap: 5, owned: false, count: 0 }
+        };
+
+        const gameState = {
+            stage: 1,
+            score: 0,
+            ap: 0,
+            playerHP: 100,
+            maxPlayerHP: 100,
+            enemyHP: 50,
+            maxEnemyHP: 50,
+            coins: 0,
+            level: 1,
+            xp: 0,
+            xpToLevel: 100,
+            correctAnswers: 0,
+            enemiesKilled: 0,
+            bossesKilled: 0,
+            currentEnemy: null,
+            theme: 'forest',
+            endlessMode: false,
+            gameActive: true,
+            maxStages: GAME_CONFIG.MAX_STAGES,
+            
+            skills: JSON.parse(JSON.stringify(initialSkills)),
+            items: JSON.parse(JSON.stringify(initialItems)),
+            
+            playerAttack: 10,
+            playerDefense: 0,
+            
+            enemies: {
+                normal: [
+                    { name: { en: 'Goblin', fa: 'Goblin' }, hp: 30, attack: 5, type: 'normal' },
+                    { name: { en: 'Skeleton', fa: 'Skeleton' }, hp: 35, attack: 6, type: 'normal' },
+                    { name: { en: 'Zombie', fa: 'Zombie' }, hp: 40, attack: 7, type: 'normal' },
+                    { name: { en: 'Wolf', fa: 'Wolf' }, hp: 25, attack: 8, type: 'normal' },
+                    { name: { en: 'Orc', fa: 'Orc' }, hp: 45, attack: 9, type: 'normal' },
+                    { name: { en: 'Troll', fa: 'Troll' }, hp: 50, attack: 10, type: 'normal' },
+                    { name: { en: 'Vampire', fa: 'Vampire' }, hp: 35, attack: 12, type: 'normal' },
+                    { name: { en: 'Werewolf', fa: 'Werewolf' }, hp: 55, attack: 11, type: 'normal' },
+                    { name: { en: 'Spider', fa: 'Spider' }, hp: 20, attack: 10, type: 'normal' },
+                    { name: { en: 'Ghost', fa: 'Ghost' }, hp: 30, attack: 15, type: 'normal' }
+                ],
+                miniBoss: [
+                    { name: { en: 'Goblin King', fa: 'Goblin King' }, hp: 80, attack: 12, type: 'miniBoss' },
+                    { name: { en: 'Skeleton Lord', fa: 'Skeleton Lord' }, hp: 90, attack: 14, type: 'miniBoss' },
+                    { name: { en: 'Zombie Horde', fa: 'Zombie Horde' }, hp: 100, attack: 10, type: 'miniBoss' },
+                    { name: { en: 'Wolf Alpha', fa: 'Wolf Alpha' }, hp: 70, attack: 16, type: 'miniBoss' },
+                    { name: { en: 'Orc Chief', fa: 'Orc Chief' }, hp: 110, attack: 15, type: 'miniBoss' },
+                    { name: { en: 'Troll King', fa: 'Troll King' }, hp: 120, attack: 18, type: 'miniBoss' },
+                    { name: { en: 'Vampire Lord', fa: 'Vampire Lord' }, hp: 90, attack: 20, type: 'miniBoss' },
+                    { name: { en: 'Werewolf Alpha', fa: 'Werewolf Alpha' }, hp: 100, attack: 19, type: 'miniBoss' },
+                    { name: { en: 'Spider Queen', fa: 'Spider Queen' }, hp: 85, attack: 17, type: 'miniBoss' },
+                    { name: { en: 'Ghost King', fa: 'Ghost King' }, hp: 75, attack: 22, type: 'miniBoss' }
+                ],
+                boss: [
+                    { name: { en: 'Forest Guardian', fa: 'Forest Guardian' }, hp: 150, attack: 18, type: 'boss', phases: 2 },
+                    { name: { en: 'Desert Titan', fa: 'Desert Titan' }, hp: 200, attack: 22, type: 'boss', phases: 2 },
+                    { name: { en: 'Ice Dragon', fa: 'Ice Dragon' }, hp: 250, attack: 25, type: 'boss', phases: 3 },
+                    { name: { en: 'Dark Sorcerer', fa: 'Dark Sorcerer' }, hp: 300, attack: 30, type: 'boss', phases: 3 },
+                    { name: { en: 'Final Demon', fa: 'Final Demon' }, hp: 400, attack: 35, type: 'boss', phases: 4 },
+                    { name: { en: 'Ancient Dragon', fa: 'Ancient Dragon' }, hp: 500, attack: 40, type: 'boss', phases: 4 },
+                    { name: { en: 'Shadow King', fa: 'Shadow King' }, hp: 600, attack: 45, type: 'boss', phases: 5 },
+                    { name: { en: 'Eternal Phoenix', fa: 'Eternal Phoenix' }, hp: 700, attack: 50, type: 'boss', phases: 5 },
+                    { name: { en: 'Cosmic Entity', fa: 'Cosmic Entity' }, hp: 800, attack: 55, type: 'boss', phases: 5 },
+                    { name: { en: 'Ultimate Boss', fa: 'Ultimate Boss' }, hp: 1000, attack: 60, type: 'boss', phases: 6 }
+                ]
+            },
+            
+            shopItems: [
+                { id: 'potion', name: { en: 'Potion', fa: 'Potion' }, price: 10, type: 'item', desc: { en: 'Heals 25 HP', fa: '25 HP درمان' } },
+                { id: 'mana', name: { en: 'Mana', fa: 'Mana' }, price: 15, type: 'item', desc: { en: '+2 AP', fa: '+2 AP' } },
+                { id: 'bigPotion', name: { en: 'Big Potion', fa: 'Big Potion' }, price: 25, type: 'item', desc: { en: 'Heals 50 HP', fa: '50 HP درمان' } },
+                { id: 'superMana', name: { en: 'Super Mana', fa: 'Super Mana' }, price: 30, type: 'item', desc: { en: '+4 AP', fa: '+4 AP' } },
+                { id: 'fullHeal', name: { en: 'Full Heal', fa: 'Full Heal' }, price: 50, type: 'item', desc: { en: 'Fully heals HP', fa: 'درمان کامل HP' } },
+                { id: 'apBoost', name: { en: 'AP Boost', fa: 'AP Boost' }, price: 40, type: 'item', desc: { en: '+5 AP', fa: '+5 AP' } },
+                { id: 'doubleAttack', name: { en: 'Double Attack', fa: 'Double Attack' }, price: 50, type: 'skill', desc: { en: 'Double attack (10 damage)', fa: 'حمله دوگانه (10 آسیب)' } },
+                { id: 'shield', name: { en: 'Shield', fa: 'Shield' }, price: 40, type: 'skill', desc: { en: 'Shield (8 damage reduced)', fa: 'سپر (8 آسیب کمتر)' } },
+                { id: 'freeze', name: { en: 'Freeze', fa: 'Freeze' }, price: 60, type: 'skill', desc: { en: 'Freezes enemy', fa: 'فریز دشمن' } },
+                { id: 'lightning', name: { en: 'Lightning', fa: 'Lightning' }, price: 80, type: 'skill', desc: { en: 'Lightning (25 damage)', fa: 'برق (25 آسیب)' } },
+                { id: 'megaHeal', name: { en: 'Mega Heal', fa: 'Mega Heal' }, price: 70, type: 'skill', desc: { en: 'Heals 50 HP', fa: '50 HP درمان' } }
+            ],
+            
+            themes: generateThemes(GAME_CONFIG.MAX_STAGES)
+        };
+
+        function generateThemes(maxStages) {
+            const themeNames = [
+                { en: 'Forest', fa: 'جنگل' },
+                { en: 'Desert', fa: 'بیابان' },
+                { en: 'Space', fa: 'فضا' },
+                { en: 'Fire', fa: 'آتش' },
+                { en: 'Ice', fa: 'یخ' },
+                { en: 'Ocean', fa: 'دریا' },
+                { en: 'Mountain', fa: 'کوهستان' },
+                { en: 'Cave', fa: 'غار' },
+                { en: 'Sky', fa: 'آسمان' },
+                { en: 'Night', fa: 'شب' },
+                { en: 'Day', fa: 'روز' },
+                { en: 'Snow', fa: 'برف' },
+                { en: 'Rain', fa: 'باران' },
+                { en: 'Storm', fa: 'طوفان' },
+                { en: 'Meadow', fa: 'چمنزار' },
+                { en: 'Desert2', fa: 'صحرا' },
+                { en: 'Rainforest', fa: 'جنگل بارانی' },
+                { en: 'Ice Mountain', fa: 'کوه یخ' },
+                { en: 'Volcano', fa: 'آتشفشان' },
+                { en: 'Lake', fa: 'دریاچه' },
+                { en: 'Grassland', fa: 'چمن' },
+                { en: 'Flower', fa: 'گل' },
+                { en: 'Tree', fa: 'درخت' },
+                { en: 'Rock', fa: 'سنگ' },
+                { en: 'Sand', fa: 'ماسه' },
+                { en: 'Sunset', fa: 'غروب' },
+                { en: 'Sunrise', fa: 'طلوع' },
+                { en: 'Fog', fa: 'مه' },
+                { en: 'Lightning', fa: 'برق' },
+                { en: 'Cloudy', fa: 'ابری' },
+                { en: 'Star', fa: 'ستاره' },
+                { en: 'Moon', fa: 'ماه' },
+                { en: 'Sun', fa: 'خورشید' }
+            ];
+            
+            const themeIcons = [
+                '🌳', '🏜', '🚀', '🔥', '❄️', '🌊', '⛰️', '🕳️', '☁️', '🌙',
+                '🌞', '❄️', '🌧️', '⛈️', '🌿', '🏜', '🌳', '❄️', '🌋', '🏞️',
+                '🍃', '🌸', '🌲', '🪨', '🏖️', '🌅', '🌄', '🌫️', '⚡', '☁️'
+            ];
+            
+            const themes = [];
+            const stagesPerTheme = 10;
+            
+            for (let i = 0; i < Math.ceil(maxStages / stagesPerTheme); i++) {
+                const startStage = i * stagesPerTheme + 1;
+                const endStage = Math.min((i + 1) * stagesPerTheme, maxStages);
+                const stages = [];
+                for (let j = startStage; j <= endStage; j++) {
+                    stages.push(j);
+                }
+                
+                const themeNameObj = themeNames[i % themeNames.length];
+                const name = GAME_CONFIG.LANGUAGE === 'fa' ? themeNameObj.fa : themeNameObj.en;
+                const icon = themeIcons[i % themeIcons.length];
+                
+                // Also store English name for music lookup
+                const englishName = themeNameObj.en;
+                
+                themes.push({
+                    stages: stages,
+                    name: name,
+                    englishName: englishName,
+                    icon: icon,
+                    color: getRandomColor()
+                });
+            }
+            
+            return themes;
+        }
+
+        function getRandomColor() {
+            const colors = [
+                '#2e8b57', '#daa520', '#4169e1', '#ff4500', '#00bfff',
+                '#008080', '#808080', '#404040', '#87ceeb', '#191970',
+                '#ff1493', '#f8f8ff', '#696969', '#4682b4', '#7cfc00'
+            ];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // ========== DOM ELEMENTS ==========
+        const elements = {
+            mainMenu: document.getElementById('main-menu'),
+            gameContainer: document.getElementById('game-container'),
+            credits: document.getElementById('credits'),
+            
+            // Language elements
+            langEn: document.getElementById('lang-en'),
+            langFa: document.getElementById('lang-fa'),
+            
+            // Menu elements
+            newGameBtn: document.getElementById('new-game-btn'),
+            coopBtn: document.getElementById('coop-btn'),
+            loadBtn: document.getElementById('load-btn'),
+            leaderboardBtn: document.getElementById('leaderboard-btn'),
+            achievementsBtn: document.getElementById('achievements-btn'),
+            settingsBtn: document.getElementById('settings-btn'),
+            mainSettingsBtn: document.getElementById('main-settings-btn'),
+            backToMenu: document.getElementById('back-to-menu'),
+            
+            // Game stats
+            stageDisplay: document.getElementById('stage-display'),
+            scoreDisplay: document.getElementById('score-display'),
+            apDisplay: document.getElementById('ap-display'),
+            hpDisplay: document.getElementById('hp-display'),
+            coinDisplay: document.getElementById('coin-display'),
+            levelDisplay: document.getElementById('level-display'),
+            
+            // Stage info
+            themeIcon: document.getElementById('theme-icon'),
+            stageTitle: document.getElementById('stage-title'),
+            musicInfo: document.getElementById('music-info'),
+            
+            // Enemy and player info
+            enemyName: document.getElementById('enemy-name'),
+            enemyHpBar: document.getElementById('enemy-hp-bar'),
+            enemyHpText: document.getElementById('enemy-hp-text'),
+            
+            playerHpBar: document.getElementById('player-hp-bar'),
+            playerHpText: document.getElementById('player-hp-text'),
+            
+            // Question area
+            questionText: document.getElementById('question-text'),
+            answerInput: document.getElementById('answer-input'),
+            submitAnswer: document.getElementById('submit-answer'),
+            message: document.getElementById('message'),
+            
+            // Actions area
+            actionsArea: document.getElementById('actions-area'),
+            attackBtn: document.getElementById('attack-btn'),
+            skillsBtn: document.getElementById('skills-btn'),
+            itemsBtn: document.getElementById('items-btn'),
+            shopBtn: document.getElementById('shop-btn'),
+            skipBtn: document.getElementById('skip-btn'),
+            reviveBtn: document.getElementById('revive-btn'),
+            
+            // Modals
+            skillsModal: document.getElementById('skills-modal'),
+            skillsList: document.getElementById('skills-list'),
+            closeSkills: document.getElementById('close-skills'),
+            
+            itemsModal: document.getElementById('items-modal'),
+            itemsList: document.getElementById('items-list'),
+            closeItems: document.getElementById('close-items'),
+            
+            shopModal: document.getElementById('shop-modal'),
+            shopItems: document.getElementById('shop-items'),
+            shopCoinDisplay: document.getElementById('shop-coin-display'),
+            closeShop: document.getElementById('close-shop'),
+            
+            saveModal: document.getElementById('save-modal'),
+            closeSave: document.getElementById('close-save'),
+            
+            leaderboardModal: document.getElementById('leaderboard-modal'),
+            closeLeaderboard: document.getElementById('close-leaderboard'),
+            
+            achievementsModal: document.getElementById('achievements-modal'),
+            closeAchievements: document.getElementById('close-achievements'),
+            
+            coopModal: document.getElementById('coop-modal'),
+            closeCoop: document.getElementById('close-coop'),
+            
+            settingsModal: document.getElementById('settings-modal'),
+            closeSettings: document.getElementById('close-settings'),
+            soundToggle: document.getElementById('sound-toggle'),
+            musicToggle: document.getElementById('music-toggle'),
+            difficultySelector: document.getElementById('difficulty-selector'),
+            
+            // Game Over and Victory
+            gameOver: document.getElementById('game-over'),
+            finalStage: document.getElementById('final-stage'),
+            finalScore: document.getElementById('final-score'),
+            finalKills: document.getElementById('final-kills'),
+            finalBosses: document.getElementById('final-bosses'),
+            finalCorrect: document.getElementById('final-correct'),
+            restartGame: document.getElementById('restart-game'),
+            reviveGameBtn: document.getElementById('revive-game-btn'),
+            
+            victory: document.getElementById('victory'),
+            victoryStage: document.getElementById('victory-stage'),
+            victoryScore: document.getElementById('victory-score'),
+            victoryKills: document.getElementById('victory-kills'),
+            victoryBosses: document.getElementById('victory-bosses'),
+            victoryName: document.getElementById('victory-name'),
+            saveScoreBtn: document.getElementById('save-score-btn'),
+            restartVictory: document.getElementById('restart-victory'),
+            
+            levelUp: document.getElementById('level-up'),
+            levelUpMessage: document.getElementById('level-up-message'),
+            continueLevelUp: document.getElementById('continue-level-up'),
+            
+            soundBtn: document.getElementById('sound-btn'),
+            
+            playerInfoCoop: document.getElementById('player-info-coop'),
+            localHp: document.getElementById('local-hp'),
+            localAp: document.getElementById('local-ap'),
+            remoteHp: document.getElementById('remote-hp'),
+            remoteAp: document.getElementById('remote-ap'),
+            
+            // Coop elements
+            wifiMethod: document.getElementById('wifi-method'),
+            bluetoothMethod: document.getElementById('bluetooth-method'),
+            linkMethod: document.getElementById('link-method'),
+            wifiSection: document.getElementById('wifi-section'),
+            bluetoothSection: document.getElementById('bluetooth-section'),
+            linkSection: document.getElementById('link-section'),
+            hostGameBtn: document.getElementById('host-game-btn'),
+            joinGameBtn: document.getElementById('join-game-btn'),
+            cancelHostBtn: document.getElementById('cancel-host-btn'),
+            connectBtn: document.getElementById('connect-wifi-btn'),
+            cancelJoinBtn: document.getElementById('cancel-join-btn'),
+            copyLinkBtn: document.getElementById('copy-link-btn'),
+            shareLinkBtn: document.getElementById('share-link-btn'),
+            scanBtBtn: document.getElementById('scan-bt-btn'),
+            makeDiscoverableBtn: document.getElementById('make-discoverable-btn')
+        };
+
+        // ========== LANGUAGE FUNCTIONS ==========
+        function setLanguage(lang) {
+            GAME_CONFIG.LANGUAGE = lang;
+            
+            // Update body direction
+            document.body.classList.toggle('rtl', lang === 'fa');
+            
+            // Update language buttons
+            elements.langEn.classList.toggle('active', lang === 'en');
+            elements.langFa.classList.toggle('active', lang === 'fa');
+            
+            // Update all text elements
+            const t = translations[lang];
+            
+            // Menu
+            document.getElementById('menu-title').textContent = t.menuTitle;
+            document.getElementById('menu-subtitle').textContent = t.menuSubtitle;
+            elements.newGameBtn.textContent = t.newGame;
+            elements.coopBtn.textContent = t.coopMode;
+            elements.loadBtn.textContent = t.loadGame;
+            elements.leaderboardBtn.textContent = t.leaderboard;
+            elements.achievementsBtn.textContent = t.achievements;
+            elements.settingsBtn.textContent = t.settings;
+            
+            // Credits
+            elements.credits.textContent = t.credits;
+            
+            // Game
+            document.getElementById('game-title').textContent = t.gameTitle;
+            document.getElementById('stage-label').textContent = t.stageLabel;
+            document.getElementById('score-label').textContent = t.scoreLabel;
+            document.getElementById('ap-label').textContent = t.apLabel;
+            document.getElementById('hp-label').textContent = t.hpLabel;
+            document.getElementById('coin-label').textContent = t.coinLabel;
+            document.getElementById('level-label').textContent = t.levelLabel;
+            
+            // Actions
+            document.getElementById('actions-title').textContent = t.actionsTitle;
+            elements.attackBtn.innerHTML = t.attack + '<span class="cost">' + t.attackCost + '</span>';
+            elements.skillsBtn.innerHTML = t.skills + '<span class="cost">View</span>';
+            elements.itemsBtn.innerHTML = t.items + '<span class="cost">View</span>';
+            elements.shopBtn.innerHTML = t.shop + '<span class="cost">View</span>';
+            elements.skipBtn.innerHTML = t.skipTurn + '<span class="cost">Cost: 0 AP</span>';
+            elements.reviveBtn.innerHTML = t.revive + '<span class="cost">' + t.reviveCost + '</span>';
+            
+            // Modals
+            document.getElementById('skills-title').textContent = t.skillsTitle;
+            document.getElementById('items-title').textContent = t.itemsTitle;
+            document.getElementById('shop-title').textContent = t.shopTitle;
+            document.getElementById('save-title').textContent = t.saveTitle;
+            document.getElementById('leaderboard-title').textContent = t.leaderboardTitle;
+            document.getElementById('achievements-title').textContent = t.achievementsTitle;
+            document.getElementById('coop-title').textContent = t.coopTitle;
+            document.getElementById('settings-modal-title').textContent = t.settingsTitle;
+            
+            // Close buttons
+            elements.closeSkills.textContent = t.close;
+            elements.closeItems.textContent = t.close;
+            elements.closeShop.textContent = t.close;
+            elements.closeSave.textContent = t.close;
+            elements.closeLeaderboard.textContent = t.close;
+            elements.closeAchievements.textContent = t.close;
+            elements.closeCoop.textContent = t.close;
+            elements.closeSettings.textContent = t.close;
+            
+            // Coop
+            document.getElementById('coop-info').textContent = t.coopInfo;
+            document.getElementById('wifi-method-title').textContent = t.wifiMethod;
+            document.getElementById('wifi-method-desc').textContent = t.wifiMethodDesc;
+            document.getElementById('bluetooth-method-title').textContent = t.bluetoothMethod;
+            document.getElementById('bluetooth-method-desc').textContent = t.bluetoothMethodDesc;
+            document.getElementById('link-method-title').textContent = t.linkMethod;
+            document.getElementById('link-method-desc').textContent = t.linkMethodDesc;
+            document.getElementById('coop-step-1').textContent = t.coopStep1;
+            document.getElementById('coop-step-2').textContent = t.coopStep2;
+            elements.hostGameBtn.textContent = t.hostGame;
+            elements.joinGameBtn.textContent = t.joinGame;
+            elements.cancelHostBtn.textContent = t.cancel;
+            elements.connectBtn.textContent = t.connect;
+            elements.cancelJoinBtn.textContent = t.cancel;
+            document.getElementById('host-address-label').textContent = t.hostAddressLabel;
+            document.getElementById('host-address-input').placeholder = t.hostAddressPlaceholder;
+            document.getElementById('bluetooth-info').textContent = t.bluetoothInfo;
+            elements.scanBtBtn.textContent = t.scanDevices;
+            elements.makeDiscoverableBtn.textContent = t.makeDiscoverable;
+            document.getElementById('link-info').textContent = t.linkInfo;
+            document.getElementById('game-link-label').textContent = t.gameLinkLabel;
+            elements.copyLinkBtn.textContent = t.copyLink;
+            elements.shareLinkBtn.textContent = t.share;
+            document.getElementById('how-to-share-title').textContent = t.howToShare;
+            document.getElementById('share-step-1').textContent = t.shareStep1;
+            document.getElementById('share-step-2').textContent = t.shareStep2;
+            document.getElementById('share-step-3').textContent = t.shareStep3;
+            document.getElementById('share-step-4').textContent = t.shareStep4;
+            
+            // Settings
+            document.getElementById('sound-settings-title').textContent = t.soundSettings;
+            document.getElementById('sound-effects-label').textContent = t.soundEffects;
+            document.getElementById('background-music-label').textContent = t.backgroundMusic;
+            document.getElementById('difficulty-settings-title').textContent = t.difficultySettings;
+            document.getElementById('diff-easy').textContent = t.easy;
+            document.getElementById('diff-normal').textContent = t.normal;
+            document.getElementById('diff-hard').textContent = t.hard;
+            document.getElementById('diff-expert').textContent = t.expert;
+            
+            // Game Over
+            document.getElementById('game-over-title').textContent = t.gameOverTitle;
+            document.getElementById('final-stage-text').textContent = t.reachedStage;
+            document.getElementById('final-score-text').textContent = t.finalScore;
+            document.getElementById('final-kills-text').textContent = t.enemiesKilled;
+            document.getElementById('final-bosses-text').textContent = t.bossesDefeated;
+            document.getElementById('final-correct-text').textContent = t.correctAnswers;
+            elements.restartGame.textContent = t.restart;
+            elements.reviveGameBtn.textContent = t.reviveWithCoins;
+            
+            // Victory
+            document.getElementById('victory-title').textContent = t.victoryTitle;
+            document.getElementById('victory-stage-text').textContent = t.finalStage;
+            document.getElementById('victory-score-text').textContent = t.finalScore;
+            document.getElementById('victory-kills-text').textContent = t.enemiesKilled;
+            document.getElementById('victory-bosses-text').textContent = t.bossesDefeated;
+            elements.victoryName.placeholder = t.enterName;
+            elements.saveScoreBtn.textContent = t.saveScore;
+            elements.restartVictory.textContent = t.restart;
+            
+            // Level Up
+            document.getElementById('level-up-title').textContent = t.levelUpTitle;
+            elements.continueLevelUp.textContent = t.continue;
+            
+            // Update shop and other dynamic content
+            if (gameState.gameActive) {
+                updateUI();
+            }
+            
+            // Save language preference
+            localStorage.setItem('math_rpg_language', lang);
+        }
+
+        function initLanguage() {
+            // Check for saved language
+            const savedLang = localStorage.getItem('math_rpg_language');
+            if (savedLang) {
+                setLanguage(savedLang);
+            } else {
+                // Default to English
+                setLanguage('en');
+            }
+            
+            // Add event listeners for language buttons
+            elements.langEn.addEventListener('click', () => setLanguage('en'));
+            elements.langFa.addEventListener('click', () => setLanguage('fa'));
+        }
+
+        // ========== GAME FUNCTIONS ==========
+        function startGame() {
+            initAudio();
+            resetGameState();
+            elements.gameContainer.style.display = 'block';
+            elements.mainMenu.style.display = 'none';
+            updateUI();
+            spawnEnemy();
+            generateQuestion();
+            
+            // If in multiplayer mode, show coop UI
+            if (isMultiplayer) {
+                elements.playerInfoCoop.style.display = 'flex';
+                updateCoopUI();
+            }
+        }
+
+        function showMainMenu() {
+            elements.gameContainer.style.display = 'none';
+            elements.mainMenu.style.display = 'flex';
+            bgMusic.pause();
+        }
+
+        function resetGameState() {
+            gameState.stage = 1;
+            gameState.score = 0;
+            gameState.ap = 0;
+            gameState.playerHP = 100;
+            gameState.maxPlayerHP = 100;
+            gameState.coins = 0;
+            gameState.level = 1;
+            gameState.xp = 0;
+            gameState.xpToLevel = 100;
+            gameState.correctAnswers = 0;
+            gameState.enemiesKilled = 0;
+            gameState.bossesKilled = 0;
+            gameState.gameActive = true;
+            gameState.endlessMode = false;
+            gameState.playerAttack = 10;
+            gameState.playerDefense = 0;
+            
+            gameState.skills = JSON.parse(JSON.stringify(initialSkills));
+            gameState.items = JSON.parse(JSON.stringify(initialItems));
+            
+            elements.gameOver.style.display = 'none';
+            elements.victory.style.display = 'none';
+            elements.levelUp.style.display = 'none';
+            elements.actionsArea.style.display = 'none';
+            elements.playerInfoCoop.style.display = 'none';
+            
+            showMessage('');
+            
+            soundSettings.enabled = true;
+            elements.soundBtn.classList.remove('muted');
+            elements.soundBtn.textContent = '🔊';
+            
+            const theme = getCurrentTheme();
+            playBackgroundMusic(theme.englishName || theme.name);
+        }
+
+        function updateUI() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            elements.stageDisplay.textContent = gameState.stage;
+            elements.scoreDisplay.textContent = gameState.score;
+            elements.apDisplay.textContent = gameState.ap;
+            elements.hpDisplay.textContent = gameState.playerHP;
+            elements.coinDisplay.textContent = gameState.coins;
+            elements.levelDisplay.textContent = gameState.level;
+            
+            const enemyHpPercent = (gameState.enemyHP / gameState.maxEnemyHP) * 100;
+            const playerHpPercent = (gameState.playerHP / gameState.maxPlayerHP) * 100;
+            
+            elements.enemyHpBar.style.width = `${enemyHpPercent}%`;
+            elements.playerHpBar.style.width = `${playerHpPercent}%`;
+            elements.enemyHpText.textContent = `HP: ${gameState.enemyHP}`;
+            elements.playerHpText.textContent = `HP: ${gameState.playerHP}`;
+            
+            const theme = getCurrentTheme();
+            elements.themeIcon.textContent = theme.icon;
+            elements.stageTitle.textContent = `${lang === 'fa' ? 'مرحله' : 'Stage'} ${gameState.stage} - ${theme.name} ${theme.icon}`;
+            elements.musicInfo.textContent = `🎵 ${lang === 'fa' ? 'موسیقی' : 'Music'}: ${theme.name}`;
+            
+            // Update enemy name with current language
+            if (gameState.currentEnemy) {
+                const enemyName = gameState.currentEnemy.name[lang] || gameState.currentEnemy.name.en || gameState.currentEnemy.name.fa;
+                let displayName = enemyName;
+                
+                if (gameState.currentEnemy.type === 'miniBoss') {
+                    displayName += `<span class="boss-indicator boss-mini">${lang === 'fa' ? 'مینی باس' : 'Mini Boss'}</span>`;
+                } else if (gameState.currentEnemy.type === 'boss') {
+                    displayName += `<span class="boss-indicator boss-main">${lang === 'fa' ? 'باس' : 'Boss'}</span>`;
+                }
+                
+                elements.enemyName.innerHTML = displayName;
+            }
+            
+            if (playerHpPercent <= 25) {
+                elements.hpDisplay.classList.add('danger');
+                elements.hpDisplay.classList.remove('warning');
+            } else if (playerHpPercent <= 50) {
+                elements.hpDisplay.classList.add('warning');
+                elements.hpDisplay.classList.remove('danger');
+            } else {
+                elements.hpDisplay.classList.remove('danger', 'warning');
+            }
+            
+            updateActionButtons();
+            playBackgroundMusic(theme.englishName || theme.name);
+        }
+
+        function getCurrentTheme() {
+            for (const theme of gameState.themes) {
+                if (theme.stages.includes(gameState.stage)) {
+                    return theme;
+                }
+            }
+            return gameState.themes[(gameState.stage - 1) % gameState.themes.length];
+        }
+
+        function spawnEnemy() {
+            let enemyType = 'normal';
+            
+            if (gameState.stage % 5 === 0 && gameState.stage % 10 !== 0) {
+                enemyType = 'miniBoss';
+                playSound('boss');
+            } else if (gameState.stage % 10 === 0) {
+                enemyType = 'boss';
+                playSound('boss');
+            }
+            
+            const enemies = gameState.enemies[enemyType];
+            const randomIndex = Math.floor(Math.random() * enemies.length);
+            const enemy = enemies[randomIndex];
+            
+            gameState.currentEnemy = enemy;
+            gameState.enemyHP = enemy.hp;
+            gameState.maxEnemyHP = enemy.hp;
+            
+            const scaleFactor = getEnemyScaleFactor();
+            gameState.enemyHP = Math.floor(gameState.enemyHP * scaleFactor);
+            gameState.maxEnemyHP = gameState.enemyHP;
+            gameState.currentEnemy.attack = Math.floor(gameState.currentEnemy.attack * scaleFactor);
+            
+            updateUI();
+        }
+
+        function getEnemyScaleFactor() {
+            if (gameState.endlessMode || gameState.stage > 1000) {
+                return 1 + (gameState.stage - 1000) * 0.005;
+            } else if (gameState.stage > 500) {
+                return 1 + (gameState.stage - 500) * 0.008;
+            } else if (gameState.stage > 100) {
+                return 1 + (gameState.stage - 100) * 0.01;
+            } else if (gameState.stage > 50) {
+                return 1 + (gameState.stage - 50) * 0.02;
+            } else if (gameState.stage > 20) {
+                return 1 + (gameState.stage - 20) * 0.03;
+            }
+            return 1;
+        }
+
+        function generateMathQuestion(difficulty) {
+            const filteredQuestions = questionDatabase.filter(q => q.difficulty <= difficulty);
+            const randomIndex = Math.floor(Math.random() * filteredQuestions.length);
+            return filteredQuestions[randomIndex];
+        }
+
+        function getQuestionDifficulty() {
+            let difficulty = 1;
+            
+            if (gameState.currentEnemy && gameState.currentEnemy.type === 'miniBoss') {
+                difficulty = 5;
+            } else if (gameState.currentEnemy && gameState.currentEnemy.type === 'boss') {
+                difficulty = 5;
+            } else if (gameState.stage > 20000) {
+                difficulty = 5;
+            } else if (gameState.stage > 10000) {
+                difficulty = 5;
+            } else if (gameState.stage > 5000) {
+                difficulty = 5;
+            } else if (gameState.stage > 1000) {
+                difficulty = 4;
+            } else if (gameState.stage > 500) {
+                difficulty = 4;
+            } else if (gameState.stage > 100) {
+                difficulty = 3;
+            } else if (gameState.stage > 50) {
+                difficulty = 3;
+            } else if (gameState.stage > 20) {
+                difficulty = 2;
+            }
+            
+            if (GAME_CONFIG.DIFFICULTY === 'easy') {
+                difficulty = Math.max(1, difficulty - 1);
+            } else if (GAME_CONFIG.DIFFICULTY === 'hard') {
+                difficulty = Math.min(5, difficulty + 1);
+            } else if (GAME_CONFIG.DIFFICULTY === 'expert') {
+                difficulty = 5;
+            }
+            
+            return difficulty;
+        }
+
+        function generateQuestion() {
+            const difficulty = getQuestionDifficulty();
+            const question = generateMathQuestion(difficulty);
+            const lang = GAME_CONFIG.LANGUAGE;
+            
+            // For Persian, we need to generate a Persian question
+            if (lang === 'fa') {
+                const numbers = [];
+                const numMatches = question.text.match(/\d+/g);
+                if (numMatches) {
+                    for (const num of numMatches) {
+                        numbers.push(parseFloat(num));
+                    }
+                }
+                
+                const sum = numbers.reduce((a, b) => a + b, 0);
+                const answer = sum / numbers.length;
+                const persianNumbers = numbers.map(n => n.toLocaleString('fa-IR'));
+                elements.questionText.textContent = `میانگین ${persianNumbers.join('، ')} چیست؟`;
+            } else {
+                elements.questionText.textContent = question.text;
+            }
+            
+            elements.answerInput.value = '';
+            elements.answerInput.focus();
+            showMessage('');
+        }
+
+        function checkAnswer() {
+            if (!gameState.gameActive) return;
+            
+            const userAnswer = parseFloat(elements.answerInput.value);
+            
+            if (isNaN(userAnswer)) {
+                const lang = GAME_CONFIG.LANGUAGE;
+                showMessage(translations[lang].enterNumber, 'error');
+                playSound('wrong');
+                return;
+            }
+            
+            const questionText = elements.questionText.textContent;
+            const numbers = [];
+            const numMatches = questionText.match(/[\d,]+/g);
+            if (numMatches) {
+                for (const num of numMatches) {
+                    // Handle both English and Persian numbers
+                    const cleanNum = num.replace(/,/g, '');
+                    numbers.push(parseFloat(cleanNum));
+                }
+            }
+            
+            const sum = numbers.reduce((a, b) => a + b, 0);
+            const correctAnswer = sum / numbers.length;
+            
+            const tolerance = 0.01;
+            const isCorrect = Math.abs(userAnswer - correctAnswer) < tolerance;
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (isCorrect) {
+                gameState.ap += 1;
+                gameState.correctAnswers += 1;
+                gameState.score += 10 * gameState.stage;
+                gameState.xp += 5 * gameState.stage;
+                gameState.coins += Math.floor(Math.random() * 5) + 1;
+                playSound('correct');
+                playSound('coin');
+                
+                showMessage(t.correct, 'success');
+                updateUI();
+                elements.actionsArea.style.display = 'block';
+                
+                if (gameState.stage >= 100 && !gameState.endlessMode) {
+                    gameState.endlessMode = true;
+                    showMessage(lang === 'fa' ? '🔥 حالت بینهایت فعال شد!' : '🔥 Endless mode activated!', 'warning');
+                }
+                
+                updateAchievement('mathMaster', 1);
+                updateAchievement('perfectStreak', 1);
+                
+                checkLevelUp();
+            } else {
+                const formattedAnswer = correctAnswer % 1 === 0 ? correctAnswer.toFixed(0) : correctAnswer.toFixed(2);
+                showMessage(t.wrong + ' ' + formattedAnswer, 'error');
+                playSound('wrong');
+                
+                if (achievements.perfectStreak) {
+                    achievements.perfectStreak.progress = 0;
+                    saveAchievements();
+                }
+                
+                if (gameState.currentEnemy) {
+                    const damage = Math.max(1, gameState.currentEnemy.attack - gameState.playerDefense);
+                    gameState.playerHP -= damage;
+                    showMessage(t.enemyAttack + ' ' + damage + ' ' + t.damage, 'error');
+                    playSound('enemy');
+                    updateUI();
+                    checkGameOver();
+                }
+            }
+            
+            elements.answerInput.value = '';
+        }
+
+        function checkLevelUp() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (gameState.xp >= gameState.xpToLevel) {
+                gameState.level += 1;
+                gameState.xp -= gameState.xpToLevel;
+                gameState.xpToLevel = Math.floor(gameState.xpToLevel * 1.5);
+                
+                gameState.maxPlayerHP += 20;
+                gameState.playerHP = gameState.maxPlayerHP;
+                gameState.playerAttack += 2;
+                
+                if (gameState.level % 2 === 0) {
+                    if (gameState.items.mana.owned) {
+                        gameState.items.mana.count += 1;
+                    } else {
+                        gameState.items.mana.owned = true;
+                        gameState.items.mana.count = 1;
+                    }
+                }
+                
+                elements.levelUpMessage.textContent = `${t.levelUpMessage} ${lang === 'fa' ? 'HP' : 'HP'} +20, ${lang === 'fa' ? 'حمله' : 'Attack'} +2`;
+                elements.levelUp.style.display = 'block';
+                playSound('levelup');
+                updateUI();
+                
+                updateAchievement('levelUp', 1);
+                updateAchievement('highLevel', 1);
+                updateAchievement('fullHP', gameState.maxPlayerHP - 100);
+                updateAchievement('attackMaster', gameState.playerAttack - 10);
+            }
+        }
+
+        function updateActionButtons() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            const canAttack = gameState.ap >= 1;
+            const canUseSkill = Object.values(gameState.skills).some(s => s.owned && s.count > 0);
+            const canUseItem = Object.values(gameState.items).some(i => i.owned && i.count > 0);
+            const canRevive = gameState.ap >= 5 && gameState.playerHP < gameState.maxPlayerHP;
+            
+            elements.attackBtn.classList.toggle('disabled', !canAttack);
+            elements.skillsBtn.classList.toggle('disabled', !canUseSkill);
+            elements.itemsBtn.classList.toggle('disabled', !canUseItem);
+            elements.reviveBtn.classList.toggle('disabled', !canRevive);
+        }
+
+        function useAction(action) {
+            if (!gameState.gameActive) return;
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            switch (action) {
+                case 'attack':
+                    if (gameState.ap < 1) {
+                        showMessage(t.notEnoughAP, 'error');
+                        playSound('wrong');
+                        return;
+                    }
+                    gameState.ap -= 1;
+                    const damage = gameState.playerAttack;
+                    gameState.enemyHP -= damage;
+                    showMessage(`${lang === 'fa' ? 'شما' : 'You'} ${damage} ${t.damage}`, 'success');
+                    playSound('attack');
+                    updateUI();
+                    checkEnemyDefeated();
+                    break;
+                    
+                case 'revive':
+                    if (gameState.ap < 5) {
+                        showMessage(t.notEnoughAP, 'error');
+                        playSound('wrong');
+                        return;
+                    }
+                    gameState.ap -= 5;
+                    const healAmount = Math.floor(gameState.maxPlayerHP * 0.3);
+                    gameState.playerHP = Math.min(gameState.maxPlayerHP, gameState.playerHP + healAmount);
+                    showMessage(`💚 ${t.revived} ${healAmount} HP ${t.hpRestored}`, 'success');
+                    playSound('revive');
+                    updateUI();
+                    break;
+            }
+            
+            elements.actionsArea.style.display = 'none';
+            
+            if (gameState.gameActive && gameState.enemyHP > 0) {
+                setTimeout(enemyTurn, 1000);
+            }
+        }
+
+        function enemyTurn() {
+            if (!gameState.gameActive || gameState.enemyHP <= 0) return;
+            
+            const enemy = gameState.currentEnemy;
+            let damage, message;
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (enemy.type === 'boss') {
+                const hpPercent = (gameState.enemyHP / gameState.maxEnemyHP) * 100;
+                const phase = enemy.phases || 1;
+                
+                if (hpPercent <= 25 && phase >= 4) {
+                    damage = enemy.attack * 2.5;
+                    message = `${lang === 'fa' ? 'باس از فاز 4 استفاده کرد!' : 'Boss used Phase 4!'} ${Math.floor(damage)} ${t.damage}`;
+                } else if (hpPercent <= 50 && phase >= 3) {
+                    damage = enemy.attack * 2;
+                    message = `${lang === 'fa' ? 'باس از فاز 3 استفاده کرد!' : 'Boss used Phase 3!'} ${Math.floor(damage)} ${t.damage}`;
+                } else if (hpPercent <= 75 && phase >= 2) {
+                    damage = enemy.attack * 1.5;
+                    message = `${lang === 'fa' ? 'باس از فاز 2 استفاده کرد!' : 'Boss used Phase 2!'} ${Math.floor(damage)} ${t.damage}`;
+                } else {
+                    damage = enemy.attack;
+                    message = `${lang === 'fa' ? 'دشمن' : 'Enemy'} ${damage} ${t.damage}`;
+                }
+            } else if (enemy.type === 'miniBoss') {
+                if (Math.random() > 0.5) {
+                    damage = enemy.attack * 1.3;
+                    message = `${lang === 'fa' ? 'مینی باس حمله ویژه کرد!' : 'Mini Boss used special attack!'} ${Math.floor(damage)} ${t.damage}`;
+                } else {
+                    damage = enemy.attack;
+                    message = `${lang === 'fa' ? 'دشمن' : 'Enemy'} ${damage} ${t.damage}`;
+                }
+            } else {
+                damage = enemy.attack;
+                message = `${lang === 'fa' ? 'دشمن' : 'Enemy'} ${damage} ${t.damage}`;
+            }
+            
+            damage = Math.max(1, damage - gameState.playerDefense);
+            gameState.playerHP -= damage;
+            
+            showMessage(message, 'error');
+            playSound('enemy');
+            updateUI();
+            checkGameOver();
+            
+            gameState.playerDefense = 0;
+            
+            if (gameState.gameActive) {
+                setTimeout(generateQuestion, 1500);
+            }
+        }
+
+        function checkEnemyDefeated() {
+            if (gameState.enemyHP <= 0) {
+                gameState.enemyHP = 0;
+                gameState.enemiesKilled += 1;
+                
+                const lang = GAME_CONFIG.LANGUAGE;
+                const t = translations[lang];
+                
+                if (gameState.currentEnemy.type === 'boss') {
+                    gameState.bossesKilled += 1;
+                    gameState.score += 500 * gameState.stage;
+                    showMessage(`🎉 ${t.bossDefeated} ${500 * gameState.stage} ${t.points}`, 'success');
+                    playSound('victory');
+                    updateAchievement('bossSlayer', 1);
+                    updateAchievement('miniBossHunter', 1);
+                } else if (gameState.currentEnemy.type === 'miniBoss') {
+                    gameState.score += 300 * gameState.stage;
+                    showMessage(`🎉 ${t.miniBossDefeated} ${300 * gameState.stage} ${t.points}`, 'success');
+                    playSound('victory');
+                    updateAchievement('miniBossHunter', 1);
+                } else {
+                    gameState.score += 100 * gameState.stage;
+                    showMessage(`🎯 ${t.enemyDefeated} ${100 * gameState.stage} ${t.points}`, 'success');
+                    playSound('victory');
+                    updateAchievement('firstBlood', 1);
+                }
+                
+                const coinReward = gameState.currentEnemy.type === 'boss' ? 50 : 
+                                   gameState.currentEnemy.type === 'miniBoss' ? 30 : 10;
+                gameState.coins += coinReward * gameState.stage;
+                playSound('coin');
+                
+                const xpReward = gameState.currentEnemy.type === 'boss' ? 100 : 
+                                gameState.currentEnemy.type === 'miniBoss' ? 60 : 20;
+                gameState.xp += xpReward * gameState.stage;
+                checkLevelUp();
+                
+                updateUI();
+                
+                updateAchievement('richPlayer', coinReward * gameState.stage);
+                updateAchievement('stage100', 1);
+                updateAchievement('stage500', 1);
+                updateAchievement('stage1000', 1);
+                updateAchievement('score10000', 100 * gameState.stage);
+                
+                setTimeout(() => {
+                    gameState.stage += 1;
+                    
+                    if (gameState.stage > gameState.maxStages) {
+                        endGame(true);
+                        return;
+                    }
+                    
+                    spawnEnemy();
+                    generateQuestion();
+                }, 2000);
+            }
+        }
+
+        function checkGameOver() {
+            if (gameState.playerHP <= 0) {
+                gameState.playerHP = 0;
+                endGame(false);
+            }
+        }
+
+        function endGame(victory) {
+            gameState.gameActive = false;
+            bgMusic.pause();
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (victory) {
+                playSound('victory');
+                elements.victoryStage.textContent = gameState.stage - 1;
+                elements.victoryScore.textContent = gameState.score;
+                elements.victoryKills.textContent = gameState.enemiesKilled;
+                elements.victoryBosses.textContent = gameState.bossesKilled;
+                elements.victory.style.display = 'block';
+                
+                updateAchievement('endlessSurvivor', gameState.stage - 1);
+                updateAchievement('coopPlayer', isMultiplayer ? 1 : 0);
+            } else {
+                playSound('gameover');
+                elements.finalStage.textContent = gameState.stage;
+                elements.finalScore.textContent = gameState.score;
+                elements.finalKills.textContent = gameState.enemiesKilled;
+                elements.finalBosses.textContent = gameState.bossesKilled;
+                elements.finalCorrect.textContent = gameState.correctAnswers;
+                elements.gameOver.style.display = 'block';
+            }
+            
+            updateUI();
+        }
+
+        function reviveWithCoins() {
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (gameState.coins >= 50) {
+                gameState.coins -= 50;
+                gameState.playerHP = Math.floor(gameState.maxPlayerHP * 0.5);
+                gameState.gameActive = true;
+                elements.gameOver.style.display = 'none';
+                updateUI();
+                spawnEnemy();
+                generateQuestion();
+                showMessage(`💚 ${t.revived}`, 'success');
+                playSound('revive');
+            } else {
+                showMessage(t.notEnoughCoins, 'error');
+                playSound('wrong');
+            }
+        }
+
+        function skipTurn() {
+            if (!gameState.gameActive) return;
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            showMessage(t.turnSkipped, 'warning');
+            elements.actionsArea.style.display = 'none';
+            
+            setTimeout(enemyTurn, 1000);
+        }
+
+        function showMessage(text, type = '') {
+            elements.message.textContent = text;
+            elements.message.className = `message ${type}`;
+        }
+
+        // ========== MODALS ==========
+        function openSkillsModal() {
+            if (!gameState.gameActive) return;
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            elements.skillsList.innerHTML = '';
+            
+            for (const [id, skill] of Object.entries(gameState.skills)) {
+                if (skill.owned && skill.count > 0) {
+                    const skillElement = document.createElement('div');
+                    skillElement.className = 'skill-item';
+                    const skillName = skill.name[lang] || skill.name.en || skill.name.fa;
+                    const skillDesc = skill.damage ? `${skill.damage} ${t.damage}` : 
+                                      skill.heal ? `${skill.heal} HP ${t.healed}` : 
+                                      skill.shield ? `${skill.shield} ${t.damageReduced}` : 
+                                      t.skillUsed;
+                    
+                    skillElement.innerHTML = `
+                        <span class="skill-name">${skillName}</span>
+                        <span>
+                            <span class="skill-cost">${t.cost}: ${skill.cost} AP</span>
+                            <span class="skill-count">×${skill.count}</span>
+                        </span>
+                    `;
+                    skillElement.addEventListener('click', () => useSkill(id));
+                    elements.skillsList.appendChild(skillElement);
+                }
+            }
+            
+            elements.skillsModal.style.display = 'block';
+        }
+
+        function useSkill(skillId) {
+            const skill = gameState.skills[skillId];
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (!skill || !skill.owned || skill.count <= 0) {
+                showMessage(t.notAvailable, 'error');
+                playSound('wrong');
+                return;
+            }
+            
+            if (gameState.ap < skill.cost) {
+                showMessage(`${t.notEnoughAP} ${skill.name[lang] || skill.name.en}!`, 'error');
+                playSound('wrong');
+                return;
+            }
+            
+            gameState.ap -= skill.cost;
+            skill.count -= 1;
+            
+            elements.skillsModal.style.display = 'none';
+            elements.actionsArea.style.display = 'none';
+            
+            let message = '';
+            
+            switch (skillId) {
+                case 'fireball':
+                    const damage = skill.damage;
+                    gameState.enemyHP -= damage;
+                    message = `🔥 ${skill.name[lang] || skill.name.en}: ${damage} ${t.damage}!`;
+                    playSound('attack');
+                    updateAchievement('fireMage', 1);
+                    break;
+                    
+                case 'heal':
+                    const healAmount = skill.heal;
+                    gameState.playerHP = Math.min(gameState.maxPlayerHP, gameState.playerHP + healAmount);
+                    message = `💚 ${skill.name[lang] || skill.name.en}: ${healAmount} HP ${t.healed}!`;
+                    playSound('skill');
+                    updateAchievement('healer', 1);
+                    break;
+                    
+                case 'doubleAttack':
+                    const doubleDamage = skill.damage * 2;
+                    gameState.enemyHP -= doubleDamage;
+                    message = `⚔️ ${skill.name[lang] || skill.name.en}: ${doubleDamage} ${t.damage}!`;
+                    playSound('attack');
+                    break;
+                    
+                case 'shield':
+                    gameState.playerDefense += skill.shield;
+                    message = `🛡 ${skill.name[lang] || skill.name.en}: ${t.shieldActivated} ${skill.shield} ${t.damageReduced}`;
+                    playSound('skill');
+                    break;
+                    
+                case 'freeze':
+                    message = `❄️ ${skill.name[lang] || skill.name.en}: ${t.frozen}`;
+                    playSound('skill');
+                    setTimeout(() => {
+                        checkEnemyDefeated();
+                        if (gameState.gameActive && gameState.enemyHP > 0) {
+                            generateQuestion();
+                        }
+                    }, 1000);
+                    break;
+                    
+                case 'lightning':
+                    const lightningDamage = skill.damage;
+                    gameState.enemyHP -= lightningDamage;
+                    message = `⚡ ${skill.name[lang] || skill.name.en}: ${lightningDamage} ${t.damage}!`;
+                    playSound('attack');
+                    break;
+                    
+                case 'megaHeal':
+                    const megaHealAmount = skill.heal;
+                    gameState.playerHP = Math.min(gameState.maxPlayerHP, gameState.playerHP + megaHealAmount);
+                    message = `💖 ${skill.name[lang] || skill.name.en}: ${megaHealAmount} HP ${t.healed}!`;
+                    playSound('skill');
+                    updateAchievement('healer', 1);
+                    break;
+            }
+            
+            showMessage(message, 'success');
+            updateUI();
+            checkEnemyDefeated();
+            
+            if (skillId !== 'freeze' && gameState.gameActive && gameState.enemyHP > 0) {
+                setTimeout(enemyTurn, 1000);
+            }
+        }
+
+        function openItemsModal() {
+            if (!gameState.gameActive) return;
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            elements.itemsList.innerHTML = '';
+            
+            for (const [id, item] of Object.entries(gameState.items)) {
+                if (item.owned && item.count > 0) {
+                    const itemElement = document.createElement('div');
+                    itemElement.className = 'item-item';
+                    const itemName = item.name[lang] || item.name.en || item.name.fa;
+                    const itemDesc = item.heal ? `${item.heal} HP ${t.healed}` : 
+                                     item.ap ? `+${item.ap} AP` : t.skillUsed;
+                    
+                    itemElement.innerHTML = `
+                        <span class="item-name">${itemName}</span>
+                        <span>
+                            <span class="item-cost">${t.cost}: ${item.cost} AP</span>
+                            <span class="item-count">×${item.count}</span>
+                        </span>
+                    `;
+                    itemElement.addEventListener('click', () => useItem(id));
+                    elements.itemsList.appendChild(itemElement);
+                }
+            }
+            
+            elements.itemsModal.style.display = 'block';
+        }
+
+        function useItem(itemId) {
+            const item = gameState.items[itemId];
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (!item || !item.owned || item.count <= 0) {
+                showMessage(t.notAvailable, 'error');
+                playSound('wrong');
+                return;
+            }
+            
+            if (gameState.ap < item.cost) {
+                showMessage(`${t.notEnoughAP} ${item.name[lang] || item.name.en}!`, 'error');
+                playSound('wrong');
+                return;
+            }
+            
+            gameState.ap -= item.cost;
+            item.count -= 1;
+            
+            elements.itemsModal.style.display = 'none';
+            elements.actionsArea.style.display = 'none';
+            
+            let message = '';
+            
+            if (item.heal) {
+                const healAmount = item.heal;
+                gameState.playerHP = Math.min(gameState.maxPlayerHP, gameState.playerHP + healAmount);
+                message = `💚 ${item.name[lang] || item.name.en}: ${healAmount} HP ${t.healed}!`;
+                playSound('skill');
+                updateAchievement('healer', 1);
+            } else if (item.ap) {
+                const apGain = item.ap;
+                gameState.ap += apGain;
+                message = `⚡ ${item.name[lang] || item.name.en}: +${apGain} AP!`;
+                playSound('item');
+                updateAchievement('apMaster', apGain);
+            }
+            
+            showMessage(message, 'success');
+            updateUI();
+            
+            if (gameState.gameActive && gameState.enemyHP > 0) {
+                setTimeout(enemyTurn, 1000);
+            }
+        }
+
+        function openShopModal() {
+            if (!gameState.gameActive) return;
+            
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            elements.shopCoinDisplay.textContent = gameState.coins;
+            elements.shopItems.innerHTML = '';
+            
+            gameState.shopItems.forEach(shopItem => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'shop-item';
+                
+                const itemName = shopItem.name[lang] || shopItem.name.en || shopItem.name.fa;
+                const itemDesc = shopItem.desc[lang] || shopItem.desc.en || shopItem.desc.fa;
+                
+                const isOwned = gameState[shopItem.type + 's'][shopItem.id]?.owned || false;
+                const canAfford = gameState.coins >= shopItem.price;
+                
+                itemElement.innerHTML = `
+                    <h4>${itemName}</h4>
+                    <p class="desc">${itemDesc}</p>
+                    <p class="price">${t.yourCoins.replace('Your coins:', '')} ${shopItem.price}</p>
+                    <button class="buy-btn" 
+                            ${!canAfford ? 'disabled' : ''}
+                            data-id="${shopItem.id}"
+                            data-type="${shopItem.type}"
+                            data-price="${shopItem.price}">
+                        ${isOwned ? (lang === 'fa' ? 'خریداری شده' : 'Owned') : (lang === 'fa' ? 'خرید' : 'Buy')}
+                    </button>
+                `;
+                
+                if (!isOwned && canAfford) {
+                    const buyBtn = itemElement.querySelector('.buy-btn');
+                    buyBtn.addEventListener('click', () => buyItem(shopItem.id, shopItem.type, shopItem.price));
+                }
+                
+                elements.shopItems.appendChild(itemElement);
+            });
+            
+            elements.shopModal.style.display = 'block';
+        }
+
+        function buyItem(id, type, price) {
+            const lang = GAME_CONFIG.LANGUAGE;
+            const t = translations[lang];
+            
+            if (gameState.coins < price) {
+                showMessage(t.notEnoughCoinsShop, 'error');
+                playSound('wrong');
+                return;
+            }
+            
+            gameState.coins -= price;
+            playSound('coin');
+            
+            if (type === 'item') {
+                if (!gameState.items[id]) {
+                    gameState.items[id] = { name: initialItems[id].name, cost: 1, owned: true, count: 1 };
+                } else {
+                    gameState.items[id].owned = true;
+                    gameState.items[id].count += 1;
+                }
+            } else if (type === 'skill') {
+                if (!gameState.skills[id]) {
+                    gameState.skills[id] = { name: initialSkills[id].name, cost: 2, owned: true, count: 5 };
+                } else {
+                    gameState.skills[id].owned = true;
+                    gameState.skills[id].count += 5;
+                }
+            }
+            
+            const itemName = initialSkills[id] ? (initialSkills[id].name[lang] || initialSkills[id].name.en) : 
+                            initialItems[id] ? (initialItems[id].name[lang] || initialItems[id].name.en) : id;
+            showMessage(`🛒 ${itemName} ${t.bought}!`, 'success');
+            elements.shopCoinDisplay.textContent = gameState.coins;
+            updateUI();
+            openShopModal();
+            
+            updateAchievement('shopper', 1);
+        }
+
+        // ========== INITIALIZE GAME ==========
+        function initGame() {
+            initAudio();
+            loadAchievements();
+            initP2P();
+            initLanguage();
+            
+            // Event listeners
+            elements.newGameBtn.addEventListener('click', startGame);
+            elements.coopBtn.addEventListener('click', () => {
+                elements.coopModal.style.display = 'block';
+                // Select link method by default
+                selectConnectionMethod('link');
+            });
+            elements.loadBtn.addEventListener('click', () => {
+                updateSaveSlots();
+                elements.saveModal.style.display = 'block';
+            });
+            elements.leaderboardBtn.addEventListener('click', () => {
+                updateLeaderboard();
+                elements.leaderboardModal.style.display = 'block';
+            });
+            elements.achievementsBtn.addEventListener('click', () => {
+                updateAchievementsUI();
+                elements.achievementsModal.style.display = 'block';
+            });
+            elements.settingsBtn.addEventListener('click', () => {
+                elements.settingsModal.style.display = 'block';
+            });
+            elements.mainSettingsBtn.addEventListener('click', () => {
+                elements.settingsModal.style.display = 'block';
+            });
+            
+            elements.backToMenu.addEventListener('click', showMainMenu);
+            
+            elements.submitAnswer.addEventListener('click', checkAnswer);
+            elements.answerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') checkAnswer();
+            });
+            
+            elements.attackBtn.addEventListener('click', () => useAction('attack'));
+            elements.skillsBtn.addEventListener('click', () => openSkillsModal());
+            elements.itemsBtn.addEventListener('click', () => openItemsModal());
+            elements.shopBtn.addEventListener('click', () => openShopModal());
+            elements.skipBtn.addEventListener('click', skipTurn);
+            elements.reviveBtn.addEventListener('click', () => useAction('revive'));
+            
+            elements.closeSkills.addEventListener('click', () => elements.skillsModal.style.display = 'none');
+            elements.closeItems.addEventListener('click', () => elements.itemsModal.style.display = 'none');
+            elements.closeShop.addEventListener('click', () => elements.shopModal.style.display = 'none');
+            elements.closeSave.addEventListener('click', () => elements.saveModal.style.display = 'none');
+            elements.closeLeaderboard.addEventListener('click', () => elements.leaderboardModal.style.display = 'none');
+            elements.closeAchievements.addEventListener('click', () => elements.achievementsModal.style.display = 'none');
+            elements.closeCoop.addEventListener('click', () => elements.coopModal.style.display = 'none');
+            elements.closeSettings.addEventListener('click', () => elements.settingsModal.style.display = 'none');
+            
+            elements.restartGame.addEventListener('click', startGame);
+            elements.reviveGameBtn.addEventListener('click', reviveWithCoins);
+            elements.restartVictory.addEventListener('click', startGame);
+            elements.continueLevelUp.addEventListener('click', () => {
+                elements.levelUp.style.display = 'none';
+                if (gameState.gameActive) {
+                    generateQuestion();
+                }
+            });
+            
+            elements.soundBtn.addEventListener('click', toggleSound);
+            
+            elements.saveScoreBtn.addEventListener('click', () => {
+                const name = elements.victoryName.value.trim() || (GAME_CONFIG.LANGUAGE === 'fa' ? 'بازیکن ناشناس' : 'Anonymous');
+                saveScore(name, gameState.score, gameState.stage - 1, gameState.enemiesKilled, gameState.bossesKilled);
+                updateLeaderboard();
+                const lang = GAME_CONFIG.LANGUAGE;
+                showMessage(translations[lang].scoreSaved, 'success');
+                playSound('correct');
+            });
+            
+            // Coop event listeners
+            elements.hostGameBtn.addEventListener('click', startHosting);
+            elements.joinGameBtn.addEventListener('click', joinWifiGame);
+            elements.cancelHostBtn.addEventListener('click', cancelHosting);
+            elements.connectBtn.addEventListener('click', connectWifi);
+            elements.cancelJoinBtn.addEventListener('click', cancelJoin);
+            elements.copyLinkBtn.addEventListener('click', copyLink);
+            elements.shareLinkBtn.addEventListener('click', shareLink);
+            elements.scanBtBtn.addEventListener('click', initBluetooth);
+            elements.makeDiscoverableBtn.addEventListener('click', makeDiscoverable);
+            
+            // Connection method selection
+            document.querySelectorAll('.connection-method').forEach(method => {
+                method.addEventListener('click', () => {
+                    selectConnectionMethod(method.dataset.method);
+                });
+            });
+            
+            // Sound toggles
+            elements.soundToggle.addEventListener('change', (e) => {
+                soundSettings.enabled = e.target.checked;
+                elements.soundBtn.classList.toggle('muted', !soundSettings.enabled);
+                elements.soundBtn.textContent = soundSettings.enabled ? '🔊' : '🔇';
+            });
+            
+            elements.musicToggle.addEventListener('change', (e) => {
+                soundSettings.musicEnabled = e.target.checked;
+                if (soundSettings.musicEnabled) {
+                    const theme = getCurrentTheme();
+                    playBackgroundMusic(theme.englishName || theme.name);
+                } else {
+                    bgMusic.pause();
+                }
+            });
+            
+            // Difficulty selector
+            document.querySelectorAll('.difficulty-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    GAME_CONFIG.DIFFICULTY = btn.dataset.difficulty;
+                    playSound('coin');
+                });
+            });
+            
+            // Close modals on outside click
+            document.querySelectorAll('.skills-modal, .items-modal, .shop-modal, .save-modal, .leaderboard-modal, .achievements-modal, .coop-modal, .settings-modal').forEach(modal => {
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Auto-save every 30 seconds
+            setInterval(() => {
+                if (gameState.gameActive && gameState.stage > 1) {
+                    const name = `AutoSave - Stage ${gameState.stage}`;
+                    for (let i = 0; i < GAME_CONFIG.SAVE_SLOTS; i++) {
+                        if (!localStorage.getItem(`math_rpg_save_${i}`)) {
+                            saveGame(i, name);
+                            break;
+                        }
+                    }
+                }
+            }, 30000);
+            
+            // Check if we're joining a room from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomId = urlParams.get('room');
+            if (roomId) {
+                // We're joining a room, but not the host
+                if (urlParams.get('player') !== '1') {
+                    elements.coopModal.style.display = 'none';
+                    startGame();
+                }
+            }
+            
+            // Add translations for missing elements
+            translations.en.allSlotsFull = 'All slots are full. Replace the oldest save?';
+            translations.en.enterNumber = 'Please enter a number!';
+            translations.en.notAvailable = 'This is not available!';
+            translations.en.name = 'Name';
+            translations.en.shareText = 'Join me in Math RPG game!';
+            translations.en.enterAddress = 'Please enter the address!';
+            translations.en.disconnected = 'Disconnected';
+            translations.en.linkCreated = 'Link created! Share it with your friends.';
+            
+            translations.fa.allSlotsFull = 'تمام اسلات‌ها پر هستند. آیا می‌خواهید قدیمی‌ترین سیو را جایگزین کنید?';
+            translations.fa.enterNumber = 'لطفاً یک عدد وارد کنید!';
+            translations.fa.notAvailable = 'این در دسترس نیست!';
+            translations.fa.name = 'نام';
+            translations.fa.shareText = 'به من در بازی Math RPG بپیوندید!';
+            translations.fa.enterAddress = 'لطفاً آدرس میزبان رو وارد کنید!';
+            translations.fa.disconnected = 'متصل نیست';
+            translations.fa.linkCreated = 'لینک بازی ایجاد شد! آن را با دوستان خود اشتراک گذاری کنید.';
+        }
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+</html>
